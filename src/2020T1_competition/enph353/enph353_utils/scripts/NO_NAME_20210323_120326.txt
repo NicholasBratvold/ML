@@ -1,0 +1,10 @@
+12:03:26.893: Position 1: LC16
+12:03:26.893: Position 2: IN53
+12:03:26.894: Position 3: KY77
+12:03:26.895: Position 4: QL89
+12:03:26.898: Position 5: ZL11
+12:03:26.898: Position 6: JO61
+12:03:26.898: Position 7: MR20
+12:03:26.898: Position 8: OI19
+12:03:29.460: Manual control enabled.
+12:03:38.141: First command velocity received.
