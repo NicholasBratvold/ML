@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ER69
 UR02
 NV77
@@ -14,3 +15,21 @@ IH42
 PR23
 RY50
 IY73
+=======
+RK86
+KD80
+UH14
+TI91
+CP04
+ZM55
+GZ00
+IJ08
+GE46
+GR75
+NU30
+ND29
+ST25
+EL90
+LG62
+QM23
+>>>>>>> created initial robot controller script and added imitation learning model

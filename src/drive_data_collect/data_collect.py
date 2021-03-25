@@ -29,6 +29,7 @@ class DataCollector():
         ang = cmd_vel.angular.z
         
         cv_image = self.bridge.imgmsg_to_cv2(data, desired_encoding='passthrough')
+        cv_image = cv2.resize(cv_image, (640, 360))
 
         out = cv2.imwrite('/home/quinn/Code/ML/src/drive_data_collect/image_data/driving_{}_v{}_a{}.png'.format(self.counter, np.round(vel, 4), np.round(ang, 4)), cv_image)
         print('status: {}  saving img {} {} {}'.format(out, self.counter, np.round(vel, 4), np.round(ang, 4)))
