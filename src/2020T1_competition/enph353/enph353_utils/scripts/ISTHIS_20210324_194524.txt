@@ -1,0 +1,16 @@
+19:45:11.109: Position 1: CN81
+19:45:11.109: Position 2: TZ15
+19:45:11.109: Position 3: GM45
+19:45:11.110: Position 4: DW55
+19:45:11.111: Position 5: XS02
+19:45:11.111: Position 6: SX51
+19:45:11.111: Position 7: JO42
+19:45:11.111: Position 8: HS61
+19:45:24.085: Message received: ISTHIS,working,0,0000
+19:45:24.086: Timer started.
+19:47:13.917: Out of time: 240.617sec sim time (real time: 110sec).
+19:47:52.217: Message received: ISTHIS,working,0,0000
+19:47:52.218: Timer started.
+19:49:40.416: Out of time: 240.4sec sim time (real time: 108sec).
+19:53:52.159: Message received: ISTHIS,working,0,0000
+19:53:52.162: Timer started.

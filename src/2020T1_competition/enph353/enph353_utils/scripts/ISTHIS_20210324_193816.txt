@@ -1,0 +1,10 @@
+19:31:51.111: Position 1: CN81
+19:31:51.111: Position 2: TZ15
+19:31:51.113: Position 3: GM45
+19:31:51.115: Position 4: DW55
+19:31:51.121: Position 5: XS02
+19:31:51.127: Position 6: SX51
+19:31:51.134: Position 7: JO42
+19:31:51.134: Position 8: HS61
+19:38:16.519: Message received: ISTHIS,working,0,0000
+19:38:16.521: Timer started.

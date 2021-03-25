@@ -1,0 +1,342 @@
+20:55:22.052: Position 1: ER69
+20:55:22.052: Position 2: UR02
+20:55:22.053: Position 3: NV77
+20:55:22.053: Position 4: BP41
+20:55:22.055: Position 5: ZZ05
+20:55:22.056: Position 6: ZJ13
+20:55:22.056: Position 7: RM83
+20:55:22.056: Position 8: IV49
+20:55:36.879: Message received: ISTHIS,working,0,0000
+20:55:36.880: Timer started.
+20:58:43.917: Out of time: 240.295sec sim time (real time: 187sec).
+21:00:07.574: Message received: ISTHIS,working,0,0000
+21:00:07.575: Timer started.
+21:02:11.417: Out of time: 240.438sec sim time (real time: 124sec).
+21:02:28.068: Message received: ISTHIS,working,0,0000
+21:02:28.071: Timer started.
+21:03:42.319: Message received: ISTHIS,working,0,0000
+21:03:42.320: Timer started.
+21:05:24.686: Message received: ISTHIS,working,0,0000
+21:05:24.687: Timer started.
+21:08:48.917: Out of time: 240.084sec sim time (real time: 204sec).
+21:13:39.801: Message received: ISTHIS,working,0,0000
+21:13:39.803: Timer started.
+21:17:59.917: Out of time: 240.236sec sim time (real time: 260sec).
+21:32:05.483: Message received: ISTHIS,working,0,0000
+21:32:05.484: Timer started.
+21:34:03.961: Message received: ISTHIS,working,0,0000
+21:34:03.963: Timer started.
+21:36:39.707: Message received: ISTHIS,working,0,0000
+21:36:39.708: Timer started.
+21:39:47.917: Out of time: 240.507sec sim time (real time: 188sec).
+21:43:11.710: Message received: ISTHIS,working,0,0000
+21:43:11.711: Timer started.
+21:46:29.917: Out of time: 240.518sec sim time (real time: 198sec).
+21:47:52.421: Message received: ISTHIS,working,0,0000
+21:47:52.423: Timer started.
+21:48:42.633: Message received: ISTHIS,working,0,0000
+21:48:42.634: Timer started.
+21:50:22.923: Message received: ISTHIS,working,0,0000
+21:50:22.924: Timer started.
+21:53:15.917: Out of time: 240.896sec sim time (real time: 173sec).
+21:56:51.871: Message received: ISTHIS,working,0,0000
+21:56:51.872: Timer started.
+21:59:35.508: Message received: ISTHIS,working,0,0000
+21:59:35.510: Timer started.
+22:02:32.417: Out of time: 241.628sec sim time (real time: 177sec).
+22:07:49.556: Message received: ISTHIS,working,0,0000
+22:07:49.557: Timer started.
+22:08:18.175: Message received: ISTHIS,working,0,0000
+22:08:18.176: Timer started.
+22:11:28.417: Out of time: 240.397sec sim time (real time: 190sec).
+22:13:44.792: Message received: ISTHIS,working,0,0000
+22:13:44.793: Timer started.
+22:16:48.176: Message received: ISTHIS,working,0,0000
+22:16:48.177: Timer started.
+22:19:52.416: Out of time: 240.279sec sim time (real time: 184sec).
+22:23:38.887: Message received: ISTHIS,working,0,0000
+22:23:38.889: Timer started.
+22:25:38.268: Message received: ISTHIS,working,0,0000
+22:25:38.269: Timer started.
+22:28:30.465: Message received: ISTHIS,working,0,0000
+22:28:30.466: Timer started.
+22:29:09.935: Message received: ISTHIS,working,0,0000
+22:29:09.936: Timer started.
+22:32:12.917: Out of time: 240.291sec sim time (real time: 183sec).
+22:33:50.124: Message received: ISTHIS,working,0,0000
+22:33:50.125: Timer started.
+22:38:02.917: Out of time: 240.989sec sim time (real time: 253sec).
+22:38:36.257: Message received: ISTHIS,working,0,0000
+22:38:36.258: Timer started.
+22:41:31.520: Message received: ISTHIS,working,0,0000
+22:41:31.522: Timer started.
+22:43:28.091: Message received: ISTHIS,working,0,0000
+22:43:28.093: Timer started.
+22:46:21.918: Out of time: 240.54sec sim time (real time: 174sec).
+23:01:12.851: Message received: ISTHIS,working,0,0000
+23:01:12.853: Timer started.
+23:02:01.744: Message received: ISTHIS,working,0,0000
+23:02:01.746: Timer started.
+23:06:05.917: Out of time: 241.04sec sim time (real time: 244sec).
+23:11:14.358: Message received: ISTHIS,working,0,0000
+23:11:14.360: Timer started.
+23:13:16.602: Message received: ISTHIS,working,0,0000
+23:13:16.603: Timer started.
+23:15:36.171: Message received: ISTHIS,working,0,0000
+23:15:36.171: Timer started.
+23:19:51.417: Out of time: 240.359sec sim time (real time: 255sec).
+23:20:04.627: Message received: ISTHIS,working,0,0000
+23:20:04.629: Timer started.
+23:24:36.301: Message received: ISTHIS,working,0,0000
+23:24:36.302: Timer started.
+23:26:53.359: Message received: ISTHIS,working,0,0000
+23:26:53.361: Timer started.
+23:29:04.862: Message received: ISTHIS,working,0,0000
+23:29:04.862: Timer started.
+23:30:11.215: Message received: ISTHIS,working,0,0000
+23:30:11.216: Timer started.
+23:32:45.417: Out of time: 241.468sec sim time (real time: 154sec).
+23:40:49.883: Message received: ISTHIS,working,0,0000
+23:40:49.885: Timer started.
+23:44:16.916: Out of time: 240.428sec sim time (real time: 207sec).
+23:44:29.276: Message received: ISTHIS,working,0,0000
+23:44:29.277: Timer started.
+23:47:19.417: Out of time: 240.201sec sim time (real time: 170sec).
+23:47:38.378: Message received: ISTHIS,working,0,0000
+23:47:38.379: Timer started.
+23:51:28.826: Message received: ISTHIS,working,0,0000
+23:51:28.827: Timer started.
+23:53:37.517: Message received: ISTHIS,working,0,0000
+23:53:37.519: Timer started.
+23:57:31.172: Message received: ISTHIS,working,0,0000
+23:57:31.173: Timer started.
+23:58:54.397: Message received: ISTHIS,working,0,0000
+23:58:54.398: Timer started.
+00:00:11.484: Message received: ISTHIS,working,0,0000
+00:00:11.484: Timer started.
+00:03:06.417: Out of time: 240.759sec sim time (real time: 175sec).
+00:13:14.238: Message received: ISTHIS,working,0,0000
+00:13:14.239: Timer started.
+00:16:29.417: Out of time: 240.675sec sim time (real time: 195sec).
+00:16:38.578: Message received: ISTHIS,working,0,0000
+00:16:38.579: Timer started.
+00:18:12.278: Message received: ISTHIS,working,0,0000
+00:18:12.279: Timer started.
+00:20:27.289: Message received: ISTHIS,working,0,0000
+00:20:27.290: Timer started.
+00:21:36.916: Message received: ISTHIS,working,0,0000
+00:21:36.916: Timer started.
+00:23:04.059: Message received: ISTHIS,working,0,0000
+00:23:04.060: Timer started.
+00:23:58.438: Message received: ISTHIS,working,0,0000
+00:23:58.439: Timer started.
+00:24:00.845: Message received: ISTHIS,working,6,6666
+00:24:00.846: Awarded: 0 pts
+00:24:02.053: Message received: ISTHIS,working,6,6666
+00:24:02.055: Awarded: 0 pts
+00:24:03.187: Message received: ISTHIS,working,7,6666
+00:24:03.188: Awarded: 0 pts
+00:24:04.399: Message received: ISTHIS,working,6,6666
+00:24:04.400: Awarded: 0 pts
+00:24:06.322: Message received: ISTHIS,working,6,6666
+00:24:06.323: Awarded: 0 pts
+00:24:08.022: Message received: ISTHIS,working,6,6666
+00:24:08.026: Awarded: 0 pts
+00:24:09.866: Message received: ISTHIS,working,6,6666
+00:24:09.869: Awarded: 0 pts
+00:24:11.013: Message received: ISTHIS,working,1,1338
+00:24:11.014: Awarded: 0 pts
+00:24:12.238: Message received: ISTHIS,working,6,6666
+00:24:12.240: Awarded: 0 pts
+00:24:13.380: Message received: ISTHIS,working,7,6666
+00:24:13.382: Awarded: 0 pts
+00:24:14.604: Message received: ISTHIS,working,6,6666
+00:24:14.605: Awarded: 0 pts
+00:24:15.837: Message received: ISTHIS,working,6,6666
+00:24:15.838: Awarded: 0 pts
+00:24:16.945: Message received: ISTHIS,working,6,6666
+00:24:16.946: Awarded: 0 pts
+00:24:18.067: Message received: ISTHIS,working,6,6666
+00:24:18.068: Awarded: 0 pts
+00:24:19.200: Message received: ISTHIS,working,6,6666
+00:24:19.202: Awarded: 0 pts
+00:24:20.487: Message received: ISTHIS,working,6,6666
+00:24:20.488: Awarded: 0 pts
+00:24:21.567: Message received: ISTHIS,working,6,6666
+00:24:21.568: Awarded: 0 pts
+00:24:22.647: Message received: ISTHIS,working,6,6666
+00:24:22.649: Awarded: 0 pts
+00:24:23.778: Message received: ISTHIS,working,6,6666
+00:24:23.780: Awarded: 0 pts
+00:24:24.949: Message received: ISTHIS,working,6,6666
+00:24:24.951: Awarded: 0 pts
+00:24:26.121: Message received: ISTHIS,working,6,6666
+00:24:26.123: Awarded: 0 pts
+00:24:27.292: Message received: ISTHIS,working,6,6666
+00:24:27.294: Awarded: 0 pts
+00:24:28.535: Message received: ISTHIS,working,6,6666
+00:24:28.536: Awarded: 0 pts
+00:24:29.738: Message received: ISTHIS,working,6,6666
+00:24:29.741: Awarded: 0 pts
+00:24:30.885: Message received: ISTHIS,working,6,6666
+00:24:30.886: Awarded: 0 pts
+00:24:32.031: Message received: ISTHIS,working,6,6666
+00:24:32.033: Awarded: 0 pts
+00:24:33.074: Message received: ISTHIS,working,6,6666
+00:24:33.075: Awarded: 0 pts
+00:24:34.411: Message received: ISTHIS,working,3,6188
+00:24:34.412: Awarded: 0 pts
+00:24:37.311: Message received: ISTHIS,working,6,6666
+00:24:37.313: Awarded: 0 pts
+00:24:38.489: Message received: ISTHIS,working,6,6666
+00:24:38.490: Awarded: 0 pts
+00:24:39.633: Message received: ISTHIS,working,6,6666
+00:24:39.634: Awarded: 0 pts
+00:24:40.756: Message received: ISTHIS,working,6,6666
+00:24:40.758: Awarded: 0 pts
+00:24:41.924: Message received: ISTHIS,working,6,6666
+00:24:41.925: Awarded: 0 pts
+00:24:43.733: Message received: ISTHIS,working,1,1338
+00:24:43.735: Awarded: 0 pts
+00:24:45.562: Message received: ISTHIS,working,6,6666
+00:24:45.563: Awarded: 0 pts
+00:24:46.779: Message received: ISTHIS,working,6,6666
+00:24:46.780: Awarded: 0 pts
+00:24:48.581: Message received: ISTHIS,working,6,6666
+00:24:48.582: Awarded: 0 pts
+00:24:51.037: Message received: ISTHIS,working,6,6666
+00:24:51.038: Awarded: 0 pts
+00:24:52.258: Message received: ISTHIS,working,6,6666
+00:24:52.259: Awarded: 0 pts
+00:24:54.752: Message received: ISTHIS,working,6,6666
+00:24:54.753: Awarded: 0 pts
+00:24:56.406: Message received: ISTHIS,working,6,6666
+00:24:56.409: Awarded: 0 pts
+00:24:58.341: Message received: ISTHIS,working,6,6666
+00:24:58.343: Awarded: 0 pts
+00:24:59.714: Message received: ISTHIS,working,1,1338
+00:24:59.715: Awarded: 0 pts
+00:25:00.985: Message received: ISTHIS,working,6,6666
+00:25:00.986: Awarded: 0 pts
+00:25:02.188: Message received: ISTHIS,working,8,6666
+00:25:02.189: Awarded: 0 pts
+00:25:03.392: Message received: ISTHIS,working,6,6666
+00:25:03.394: Awarded: 0 pts
+00:25:04.539: Message received: ISTHIS,working,6,6666
+00:25:04.541: Awarded: 0 pts
+00:25:05.697: Message received: ISTHIS,working,6,6666
+00:25:05.699: Awarded: 0 pts
+00:25:06.898: Message received: ISTHIS,working,1,1338
+00:25:06.900: Awarded: 0 pts
+00:25:08.034: Message received: ISTHIS,working,7,6666
+00:25:08.036: Awarded: 0 pts
+00:25:09.127: Message received: ISTHIS,working,6,6666
+00:25:09.128: Awarded: 0 pts
+00:25:10.306: Message received: ISTHIS,working,6,6666
+00:25:10.307: Awarded: 0 pts
+00:25:11.504: Message received: ISTHIS,working,6,6666
+00:25:11.506: Awarded: 0 pts
+00:25:12.600: Message received: ISTHIS,working,6,6666
+00:25:12.601: Awarded: 0 pts
+00:25:14.332: Message received: ISTHIS,working,8,6666
+00:25:14.333: Awarded: 0 pts
+00:25:15.469: Message received: ISTHIS,working,6,6666
+00:25:15.470: Awarded: 0 pts
+00:25:16.649: Message received: ISTHIS,working,6,6666
+00:25:16.650: Awarded: 0 pts
+00:25:17.753: Message received: ISTHIS,working,6,6666
+00:25:17.754: Awarded: 0 pts
+00:25:18.857: Message received: ISTHIS,working,6,6666
+00:25:18.859: Awarded: 0 pts
+00:25:19.998: Message received: ISTHIS,working,6,6666
+00:25:20.000: Awarded: 0 pts
+00:25:21.067: Message received: ISTHIS,working,6,6666
+00:25:21.070: Awarded: 0 pts
+00:25:22.232: Message received: ISTHIS,working,6,6666
+00:25:22.233: Awarded: 0 pts
+00:25:23.404: Message received: ISTHIS,working,6,6666
+00:25:23.405: Awarded: 0 pts
+00:25:24.606: Message received: ISTHIS,working,6,6666
+00:25:24.608: Awarded: 0 pts
+00:25:25.868: Message received: ISTHIS,working,1,1616
+00:25:25.870: Awarded: 0 pts
+00:25:27.096: Message received: ISTHIS,working,6,6666
+00:25:27.097: Awarded: 0 pts
+00:25:28.238: Message received: ISTHIS,working,6,6666
+00:25:28.239: Awarded: 0 pts
+00:25:29.408: Message received: ISTHIS,working,6,6666
+00:25:29.411: Awarded: 0 pts
+00:25:30.593: Message received: ISTHIS,working,6,6666
+00:25:30.595: Awarded: 0 pts
+00:25:31.823: Message received: ISTHIS,working,6,6666
+00:25:31.825: Awarded: 0 pts
+00:25:33.005: Message received: ISTHIS,working,1,66J6
+00:25:33.007: Awarded: 0 pts
+00:25:35.944: Message received: ISTHIS,working,6,6666
+00:25:35.945: Awarded: 0 pts
+00:25:37.077: Message received: ISTHIS,working,6,6666
+00:25:37.079: Awarded: 0 pts
+00:25:38.210: Message received: ISTHIS,working,6,6666
+00:25:38.211: Awarded: 0 pts
+00:25:39.352: Message received: ISTHIS,working,6,6666
+00:25:39.353: Awarded: 0 pts
+00:25:40.492: Message received: ISTHIS,working,6,6666
+00:25:40.493: Awarded: 0 pts
+00:25:41.589: Message received: ISTHIS,working,6,6666
+00:25:41.590: Awarded: 0 pts
+00:25:42.713: Message received: ISTHIS,working,6,6666
+00:25:42.715: Awarded: 0 pts
+00:25:43.873: Message received: ISTHIS,working,6,6666
+00:25:43.875: Awarded: 0 pts
+00:25:44.971: Message received: ISTHIS,working,6,6666
+00:25:44.973: Awarded: 0 pts
+00:25:46.044: Message received: ISTHIS,working,8,6666
+00:25:46.046: Awarded: 0 pts
+00:25:47.241: Message received: ISTHIS,working,6,6666
+00:25:47.243: Awarded: 0 pts
+00:25:49.743: Message received: ISTHIS,working,6,6666
+00:25:49.744: Awarded: 0 pts
+00:25:50.961: Message received: ISTHIS,working,6,6666
+00:25:50.968: Awarded: 0 pts
+00:25:52.687: Message received: ISTHIS,working,6,6666
+00:25:52.688: Awarded: 0 pts
+00:25:53.754: Message received: ISTHIS,working,6,6666
+00:25:53.755: Awarded: 0 pts
+00:25:54.917: Message received: ISTHIS,working,6,6666
+00:25:54.918: Awarded: 0 pts
+00:25:56.061: Message received: ISTHIS,working,6,6666
+00:25:56.063: Awarded: 0 pts
+00:25:57.198: Message received: ISTHIS,working,6,6666
+00:25:57.200: Awarded: 0 pts
+00:25:58.404: Message received: ISTHIS,working,8,6666
+00:25:58.405: Awarded: 0 pts
+00:25:59.515: Message received: ISTHIS,working,7,6666
+00:25:59.516: Awarded: 0 pts
+00:26:00.644: Message received: ISTHIS,working,6,6666
+00:26:00.646: Awarded: 0 pts
+00:26:01.738: Message received: ISTHIS,working,6,6666
+00:26:01.740: Awarded: 0 pts
+00:26:04.196: Message received: ISTHIS,working,6,6666
+00:26:04.198: Awarded: 0 pts
+00:26:06.052: Message received: ISTHIS,working,6,6666
+00:26:06.053: Awarded: 0 pts
+00:26:07.152: Message received: ISTHIS,working,6,6666
+00:26:07.155: Awarded: 0 pts
+00:26:08.364: Message received: ISTHIS,working,6,6666
+00:26:08.366: Awarded: 0 pts
+00:26:09.546: Message received: ISTHIS,working,6,6666
+00:26:09.547: Awarded: 0 pts
+00:26:10.693: Message received: ISTHIS,working,6,6666
+00:26:10.694: Awarded: 0 pts
+00:26:13.701: Message received: ISTHIS,working,6,6666
+00:26:13.703: Awarded: 0 pts
+00:26:14.837: Message received: ISTHIS,working,6,6666
+00:26:14.839: Awarded: 0 pts
+00:26:15.960: Message received: ISTHIS,working,6,6666
+00:26:15.962: Awarded: 0 pts
+00:26:17.733: Message received: ISTHIS,working,6,6666
+00:26:17.735: Awarded: 0 pts
+00:26:20.283: Message received: ISTHIS,working,6,6666
+00:26:20.285: Awarded: 0 pts
+00:26:22.528: Message received: ISTHIS,working,6,6666
+00:26:22.529: Awarded: 0 pts

@@ -1,0 +1,10 @@
+18:47:17.864: Position 1: SU65
+18:47:17.864: Position 2: DY38
+18:47:17.864: Position 3: SE50
+18:47:17.866: Position 4: KV80
+18:47:17.868: Position 5: EZ88
+18:47:17.868: Position 6: AX37
+18:47:17.868: Position 7: ML11
+18:47:17.868: Position 8: EJ73
+19:13:47.915: Manual control enabled.
+19:14:17.048: First command velocity received.

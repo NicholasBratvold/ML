@@ -10,7 +10,10 @@ import string
 import random
 from random import randint
 import os
+import sys
 import re
+import tensorflow
+import keyboard
 
 from collections import Counter
 from matplotlib import pyplot as plt
@@ -21,6 +24,9 @@ from tensorflow.keras import optimizers
 
 from tensorflow.keras.utils import plot_model
 from tensorflow.keras import backend
+from tensorflow.keras import models
+from tensorflow.python.keras.backend import set_session
+
 from cv_bridge import CvBridge, CvBridgeError
 from gym import utils, spaces
 from gym_gazebo.envs import gazebo_env
@@ -32,37 +38,43 @@ from sensor_msgs.msg import Image
 from time import sleep
 
 from gym.utils import seeding
+sess1 = tensorflow.Session()
+graph1 = tensorflow.get_default_graph()
+set_session(sess1)
 
-#TODO
-#const plate_model = await tf.loadLayersModel('file://path/to/my-model/model.json');
 
-class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
+class License_Detector():
 
-    def __init__(self):
+    def __init__(self, arg):
         # Launch the simulation with the given launchfile name
         #TODO
-        LAUNCH_FILE = '/home/fizzer/ros_ws/src/2020T1_competition/enph353/enph353_utils/launch/license_detector.launch'
-        gazebo_env.GazeboEnv.__init__(self, LAUNCH_FILE)
-  
-        self.plate_pub = rospy.Publisher('/license_plate', std_msgs/String, queue_size=10)
-        self.unpause = rospy.ServiceProxy('/gazebo/unpause_physics', Empty)
-        self.pause = rospy.ServiceProxy('/gazebo/pause_physics', Empty)
-        self.reset_proxy = rospy.ServiceProxy('/gazebo/reset_world',
-                                              Empty)
-
-        self.action_space = spaces.Discrete(3)  # F,L,R
-        self.reward_range = (-np.inf, np.inf)
-        self.history = []
-        for i in range(0,7):
-            self.history.append([])
-
+        # LAUNCH_FILE = '/home/fizzer/ros_ws/src/2020T1_competition/enph353/enph353_utils/launch/license_detector_competition.launch'
+        # gazebo_env.GazeboEnv.__init__(self, LAUNCH_FILE)
         self.TeamID = 'ISTHIS'
         self.password = 'working'
-
-        self._seed()
-
         self.bridge = CvBridge()
-  
+
+        self.history = {'1' : [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8' : []}
+        # initialize game
+        rospy.init_node('license_publisher')
+        self.plate_model = tensorflow.keras.models.load_model("/home/fizzer/content_353/detection_CNN.json")
+
+
+
+
+        self.plate_pub = rospy.Publisher('/license_plate', String, queue_size=10)
+
+        #start step loop
+        sleep(1)
+        self.image_feed = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.step, queue_size=3)
+
+        if arg == "-stop":
+            self.plate_pub.publish(str(self.TeamID + "," + self.password + ",-1,0000"))
+            print("------------Stopped run------------")
+        else:
+            self.plate_pub.publish(str(self.TeamID + "," + self.password + ",0,0000"))
+            print("------------Started run------------")
+
 
     def process_image(self, data):
         '''
@@ -77,16 +89,18 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
 
         plate_detected = False
         processed_image = []
-        HOMOGRAPHY_POINTS = 12
+        HOMOGRAPHY_POINTS = 15
         # cv2.imshow("raw", cv_image)
         # cv2.waitKey(3)
         cv_image_copy = cv_image.copy()
         sift = cv2.xfeatures2d.SIFT_create()
-        #TODO
-        img = cv2.imread("/content/pictures/aplate_blank.png")
 
-        #plt.imshow(img)
-        targetheight, targetwidth, _ = img.shape
+        img = cv2.imread("/home/fizzer/content_353/aplate_blank_flat.png")
+
+        # #plt.imshow(img)
+        targetheight = img.shape[0]
+        targetwidth = img.shape[1]
+
         kp_image, desc_image = sift.detectAndCompute(img, None)
         # Feature matching
         index_params = dict(algorithm=0, trees=5)
@@ -100,7 +114,7 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
         matches = flann.knnMatch(desc_image, desc_grayframe, k=2)
         good_points = []
         for m, n in matches:
-            if m.distance < 0.6 * n.distance:
+            if m.distance < 0.68 * n.distance:
                 good_points.append(m)
 
         if len(good_points) > HOMOGRAPHY_POINTS:
@@ -111,6 +125,7 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
 
             # Perspective transform
             h, w, _ = img.shape
+            print("SIFT IMAGE: " + str(img.shape))
             pts = np.float32([[0, 0], [0, h], [w, h], [w, 0]]).reshape(-1, 1, 2)
             dst = cv2.perspectiveTransform(pts, matrix)
             # print(np.int32(dst))
@@ -155,42 +170,48 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
             # the perspective to grab the screen
             M = cv2.getPerspectiveTransform(rect, dst)
             warp = cv2.warpPerspective(frame, M, (targetwidth, targetheight))
-
-            plt.figure("warped")
-            plt.imshow(warp)
-            plt.show()
-            print(warp.shape)
+            cv2.imshow("detected", warp)
+            cv2.waitKey(3)
+            # plt.figure("warped")
+            # plt.imshow(warp)
+            # plt.show()
+            #print(warp.shape)
             processed_image = warp
             plate_detected = True
         else:
 
             framenotmatched = cv2.drawMatches(img, kp_image, grayframe, kp_grayframe, good_points, grayframe)
-
-            plt.figure("notmatched")
-            plt.imshow(framenotmatched)
-            plt.show()
+            cv2.imshow("NOT!!! detected", framenotmatched)
+            cv2.waitKey(3)
+            # plt.figure("notmatched")
+            # plt.imshow(framenotmatched)
+            # plt.show()
 
         return processed_image, plate_detected
 
     def detect_image(self, data):
         cropped_img_set = []
         im = data
-        w, h = im.size
+        w = im.shape[0]
+        h = im.shape[1]
         # print(h)
         # print(w)
         index = 0
         # split spot number and plate into seperate images
         #PARKING SPOT
-        area = (w / 2, 0, w, 2 * h / 3)
-        cim_pre = im.crop(area)
-        dim = (int(w / 4), int(h / 3))
+        #area = (w / 2, 0, w, 2.0 * h / 3)
+
+        cim_pre = im[int(w/2):w,0:int(2.0*h/3),:]
+        #dim = (int(w / 4), int(h / 3))
+        dim = (int(150), int(299))
         cim = cv2.resize(np.asarray(cim_pre), dim)
 
         cropped_img_set.append(cim)
         #PLATE
         for index in range(0, 4):
-            area = (w * index / 4, 2 * h / 3, w * index / 4 + w / 4, h)
-            cim = im.crop(area)
+            #area = (w * index / 4, 2.0 * h / 3, w * index / 4 + w / 4, h)
+            cim = im[int(w*index/4):int(w*index/4+w/4),int(2.0*h/3):h,:]
+            cim = cv2.resize(np.asarray(cim), dim)
 
 
             cropped_img_set.append(cim)
@@ -204,6 +225,7 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
         # plt.imshow(cim)
         # plt.show()
         def labelimage(plateID):
+
             encodingkey = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K',
                            11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U',
                            21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: '0', 27: '1', 28: '2', 29: '3', 30: '4',
@@ -215,43 +237,57 @@ class Gazebo_Lab06_Env(gazebo_env.GazeboEnv):
         predicted = ""
 
         for i in range(0,len(cropped_img_set)):
-            img = cropped_img_set[i]
+            img = np.asarray(cropped_img_set[i])
             img_aug = np.expand_dims(img, axis=0)
-            #predicted+= labelimage(np.argmax(plate_model.predict(img_aug)[0]))
-            predicted += "1"
+            cv2.imshow("abouttabedetected", img)
+            cv2.waitKey(3)
+
+            with graph1.as_default():
+                set_session(sess1)
+                predicted_label = self.plate_model.predict(img_aug)[0]
+            print(predicted_label)
+            predicted += labelimage(np.argmax(predicted_label))
+
 
         return predicted
 
-    def most_common_plate(self, index):
-        return Counter(self.history[index]).most_common(1)
+    def most_common_plate(self, number):
+        return Counter(self.history[number]).most_common(1)[0]
 
-    def step(self):
 
-        rospy.wait_for_service('/gazebo/unpause_physics')
-        try:
-            self.unpause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/unpause_physics service call failed")
 
-        data = None
-        while data is None:
-            try:
-                data = rospy.wait_for_message('/pi_camera/image_raw', Image,
-                                              timeout=5)
-            except:
-                pass
-
-        rospy.wait_for_service('/gazebo/pause_physics')
-        try:
-            # resp_pause = pause.call()
-            self.pause()
-        except (rospy.ServiceException) as e:
-            print ("/gazebo/pause_physics service call failed")
-
+    def step(self, data):
         processed_image, plate_detected = self.process_image(data)
         if plate_detected:
             unparsed_string = self.detect_image(processed_image)
-            if int(unparsed_string[0]) < 9 & int(unparsed_string[0]) > 0:
-                self.history[int(unparsed_string[0]-1)].append(unparsed_string)
-                temp_string = most_common_plate(int(unparsed_string[0]))
-                self.plate_pub.publish(str(self.TeamID + "," + self.password + ","+temp_string[0]+"," + temp_string[1:] ))
+            print(unparsed_string)
+            print(unparsed_string[0])
+
+
+            try:
+                self.history[unparsed_string[0]].append(unparsed_string)
+                temp_string = self.most_common_plate(unparsed_string[0])[0]
+                print(temp_string)
+                self.plate_pub.publish(str(self.TeamID + "," + self.password + ","+temp_string[0]+"," + temp_string[1:]))
+                print("published: "+ str(self.TeamID + "," + self.password + "," + temp_string[0] + "," + temp_string[1:]))
+                #self.plate_pub.publish(str(self.TeamID + "," + self.password + ",-1,0000"))
+            except KeyError:
+                pass
+
+
+if __name__ == '__main__':
+    #rospy.init_node('license_detector_competition')
+    if len(sys.argv) > 1:
+        ld = License_Detector(sys.argv[1])
+    else:
+        ld = License_Detector("start")
+    try:
+        rospy.spin()
+        try:
+            pass
+        except KeyboardInterrupt:
+            ld.plate_pub.publish(str(ld.TeamID + "," + ld.password + ",-1,0000"))
+            exit()
+
+    except rospy.ROSInterruptException:
+        pass

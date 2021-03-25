@@ -1,3 +1,0 @@
-<launch>
-	<node pkg="enph353_utils" type="license_detector.py" name="my_detector" output="screen"/>
-</launch>
