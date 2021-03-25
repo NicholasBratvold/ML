@@ -2,3 +2,5 @@ src/drive_data_collect/image_data
 build
 devel
 */.ipynb_checkpoints
+src/2020T1_competition/enph353/enph353_gazebo/scripts/plates.csv
+src/2020T1_competition/enph353/enph353_gazebo/scripts/*.png
