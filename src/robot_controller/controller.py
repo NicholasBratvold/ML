@@ -51,7 +51,7 @@ class RobotController():
             drive_predict = self.drive_model.predict(img_aug)[0]
 
         # cap linear movement for now
-        move.linear.x = min(drive_predict[0], 0.25)
+        move.linear.x = min(drive_predict[0], 0.75)
         move.angular.z = drive_predict[1]
 
         self.cmd_vel_pub.publish(move)
