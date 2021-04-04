@@ -1,4 +1,4 @@
-src/drive_data_collect/image_data
+src/drive_data_collect/image_data*
 build
 devel
 */.ipynb_checkpoints
