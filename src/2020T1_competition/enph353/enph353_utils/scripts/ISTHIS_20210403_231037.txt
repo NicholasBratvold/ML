@@ -1,0 +1,13 @@
+23:10:25.358: Position 1: SI01
+23:10:25.358: Position 2: UB53
+23:10:25.359: Position 3: NX81
+23:10:25.361: Position 4: JB16
+23:10:25.364: Position 5: JI13
+23:10:25.364: Position 6: VV58
+23:10:25.364: Position 7: ZA89
+23:10:25.364: Position 8: KE09
+23:10:37.324: Message received: ISTHIS,working,0,0000
+23:10:37.326: Timer started.
+23:10:37.500: Message received: ISTHIS,working,1,SI31
+23:10:37.500: Awarded: 0 pts
+23:10:51.451: Manual control enabled.

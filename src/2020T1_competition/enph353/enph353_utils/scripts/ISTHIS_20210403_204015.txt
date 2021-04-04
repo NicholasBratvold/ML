@@ -1,0 +1,10 @@
+20:39:19.131: Position 1: HW70
+20:39:19.131: Position 2: HX77
+20:39:19.131: Position 3: PD74
+20:39:19.133: Position 4: JN46
+20:39:19.134: Position 5: RE14
+20:39:19.134: Position 6: LO08
+20:39:19.134: Position 7: IP11
+20:39:19.134: Position 8: PI39
+20:40:15.020: Message received: ISTHIS,working,0,0000
+20:40:15.021: Timer started.

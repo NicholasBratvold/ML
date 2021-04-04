@@ -1,0 +1,12 @@
+14:42:50.629: Position 1: UL72
+14:42:50.631: Position 2: WH26
+14:42:50.632: Position 3: ML23
+14:42:50.634: Position 4: GR27
+14:42:50.634: Position 5: JT40
+14:42:50.634: Position 6: FR29
+14:42:50.635: Position 7: PP98
+14:42:50.635: Position 8: TZ89
+14:43:55.140: Message received: ISTHIS,working,0,0000
+14:43:55.141: Timer started.
+14:44:21.196: Manual control enabled.
+14:45:27.149: First command velocity received.

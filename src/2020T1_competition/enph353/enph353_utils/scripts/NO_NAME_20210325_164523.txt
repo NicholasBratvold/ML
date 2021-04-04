@@ -1,0 +1,9 @@
+16:45:23.476: Position 1: 
+16:45:23.476: Position 2: ER69
+16:45:23.477: Position 3: UR02
+16:45:23.479: Position 4: NV77
+16:45:23.479: Position 5: BP41
+16:45:23.482: Position 6: ZZ05
+16:45:23.482: Position 7: ZJ13
+16:45:23.482: Position 8: RM83
+16:46:59.280: Message received: ISTHIS,working,0,0000

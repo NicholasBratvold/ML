@@ -1,0 +1,3 @@
+12:12:39.672: Position 1: PX84
+12:13:53.190: Manual control enabled.
+12:14:05.787: First command velocity received.

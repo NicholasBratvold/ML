@@ -1,0 +1,3 @@
+<launch>
+	<node pkg="enph353_utils" type="license_detector_competition.py" name="my_detector" output="screen"/>
+</launch>

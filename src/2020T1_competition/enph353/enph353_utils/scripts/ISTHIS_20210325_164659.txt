@@ -1,0 +1,12 @@
+16:45:23.476: Position 1: 
+16:45:23.476: Position 2: ER69
+16:45:23.477: Position 3: UR02
+16:45:23.479: Position 4: NV77
+16:45:23.479: Position 5: BP41
+16:45:23.482: Position 6: ZZ05
+16:45:23.482: Position 7: ZJ13
+16:45:23.482: Position 8: RM83
+16:46:59.280: Message received: ISTHIS,working,0,0000
+16:46:59.281: Timer started.
+16:49:16.480: Message received: ISTHIS,working,-1,0000
+16:49:16.481: Timer stopped: 121.439sec sim time (real time: 137sec).
