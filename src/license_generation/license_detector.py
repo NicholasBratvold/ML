@@ -62,11 +62,12 @@ print(cv2.__version__)
 # Run this command only once
 
 
-NUMBER_OF_PLATES = 8
+NUMBER_OF_PLATES = 400
 
 
-def blur(img):
-    randomint = random.randint(1, 15)
+def blur_n_noise(img):
+    randomint = random.randint(1, 2)
+
     for i in range(0, randomint):
         img = cv2.GaussianBlur(img, (9, 9), 0)
         img = cv2.GaussianBlur(img, (27, 27), 0)
@@ -74,9 +75,13 @@ def blur(img):
         img = cv2.GaussianBlur(img, (27, 27), 0)
         img = cv2.GaussianBlur(img, (9, 9), 0)
 
+    VARIABILITY = 6
+    deviation = VARIABILITY * random.random()
+    noise = np.random.normal(0, deviation, img.shape)
+    img += noise
+    np.clip(img, 0., 255.)
 
-
-        return img
+    return img
 
 
 for i in range(0, NUMBER_OF_PLATES):
@@ -130,7 +135,7 @@ for i in range(0, NUMBER_OF_PLATES):
     path = "/home/fizzer/ros_ws/src/license_generation/"
     unlabelled_threshold = unlabelled.copy()
     unlabelled_threshold = cv2.cvtColor(unlabelled_threshold, cv2.COLOR_BGR2GRAY)
-    thresh = 77
+    thresh = 70
     dim = (200, 400)
     unlabelled_threshold = cv2.resize(unlabelled_threshold, dim)
     ret, unlabelled_threshold = cv2.threshold(unlabelled_threshold, thresh, 255, cv2.THRESH_BINARY)
@@ -144,7 +149,7 @@ for i in range(0, NUMBER_OF_PLATES):
 
     # test function
     def plotImages(images_arr):
-        fig, axes = plt.subplots(1, 8, figsize=(20, 20))
+        fig, axes = plt.subplots(1, 3, figsize=(20, 20))
         axes = axes.flatten()
         for img, ax in zip(images_arr, axes):
             ax.imshow(img)
@@ -163,7 +168,7 @@ for i in range(0, NUMBER_OF_PLATES):
         zca_epsilon=1e-06,
         rotation_range=0,
         width_shift_range=0.01,
-        height_shift_range=None,
+        height_shift_range=0.01,
         brightness_range=None,
         shear_range=5,
         zoom_range=0,
@@ -173,27 +178,29 @@ for i in range(0, NUMBER_OF_PLATES):
         horizontal_flip=False,
         vertical_flip=False,
         rescale=0.4,
-        preprocessing_function=blur,
+        preprocessing_function=blur_n_noise,
         data_format=None,
         validation_split=0.3,
         dtype=None, )
 
     aug_iter = datagen.flow(spot_w_plate)
-    aug_plates = [next(aug_iter)[0].astype(np.uint8) for k in range(8)]
+    aug_plates = [next(aug_iter)[0].astype(np.uint8) for k in range(3)]
     # Write augmented license plates to file
     for j in range(0, 3):
         aug_plates[j] = cv2.cvtColor(aug_plates[j], cv2.COLOR_RGB2GRAY)
-        thresh = 76
-        ret, aug_plates[j] = cv2.threshold(aug_plates[j], thresh, 255, cv2.THRESH_BINARY)
+        thresh = 40
         dim = (200, 400)
         aug_plates[j] = cv2.resize(aug_plates[j], dim)
+        aug_plates[j] = cv2.adaptiveThreshold(aug_plates[j], 220, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 3)
+        kernel = np.ones((3, 3), np.uint8)
+        aug_plates[j] = cv2.morphologyEx(aug_plates[j], cv2.MORPH_OPEN, kernel)
         #aug_plates[j] = cv2.Canny(aug_plates[j], 0, 255)
 
         cv2.imwrite(os.path.join(path + "pictures/",
                                  "plate_{}{}_{}_{}.png".format(plate_alpha, plate_num, spotindex, j + 1)),
                     aug_plates[j])
 print(plate_alpha + " " + plate_num)
-plotImages(aug_plates)
+#plotImages(aug_plates)
 
 PATH = "/home/fizzer/ros_ws/src/license_generation/"
 
@@ -238,8 +245,11 @@ imgset_warped = dataset
 # imgset = np.array([np.array((f'{folder}/{file}')) for file in warpeddataset[:]])
 # print("Loaded {:} images from folder:\n{}".format(imgset.shape[0], folder))
 
-X_dataset = []
-Y_dataset = []
+X_dataset_letters = []
+Y_dataset_letters = []
+X_dataset_numbers = []
+Y_dataset_numbers = []
+
 
 np.random.shuffle(imgset_warped)
 
@@ -269,53 +279,62 @@ def croplicenseimage(plate):
     n0 = cv2.resize(n0, dim)
     n1 = cv2.resize(n1, dim)
 
-    _, slabel = labelimage(plate[len(plate) - 7 ] + "_" + str(0) + ".png")
-    _, a0label = labelimage(plate[len(plate) - 12 + 0] + "_" + str(0) + ".png")
-    _, a1label = labelimage(plate[len(plate) - 12 + 1] + "_" + str(1) + ".png")
-    _, n0label = labelimage(plate[len(plate) - 12 + 2] + "_" + str(2) + ".png")
-    _, n1label = labelimage(plate[len(plate) - 12 + 3] + "_" + str(3) + ".png")
+    _, slabel = labelimage(plate[len(plate) - 7 ] + "_" + str(0) + ".png", number=True)
+    _, a0label = labelimage(plate[len(plate) - 12 + 0] + "_" + str(0) + ".png",number=False)
+    _, a1label = labelimage(plate[len(plate) - 12 + 1] + "_" + str(1) + ".png",number=False)
+    _, n0label = labelimage(plate[len(plate) - 12 + 2] + "_" + str(2) + ".png",number=True)
+    _, n1label = labelimage(plate[len(plate) - 12 + 3] + "_" + str(3) + ".png",number=True)
 
-    Y_dataset.append(slabel)
-    X_dataset.append(s)
-    Y_dataset.append(a0label)
-    X_dataset.append(a0)
-    Y_dataset.append(a1label)
-    X_dataset.append(a1)
-    Y_dataset.append(n0label)
-    X_dataset.append(n0)
-    Y_dataset.append(n1label)
-    X_dataset.append(n1)
+    Y_dataset_numbers.append(slabel)
+    X_dataset_numbers.append(s)
+    Y_dataset_letters.append(a0label)
+    X_dataset_letters.append(a0)
+    Y_dataset_letters.append(a1label)
+    X_dataset_letters.append(a1)
+    Y_dataset_numbers.append(n0label)
+    X_dataset_numbers.append(n0)
+    Y_dataset_numbers.append(n1label)
+    X_dataset_numbers.append(n1)
 
 
 
 # create one hot key for given cropped image.
 # return the 'index' of the number on the plate and return the 'label' that hold the vector of the inputted image.
 
-def labelimage(plateID):
+def labelimage(plateID, number):
     encodingkey = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9, 'K': 10, 'L': 11,
                    'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19, 'U': 20, 'V': 21, 'W': 22,
                    'X': 23, 'Y': 24, 'Z': 25, '0': 26, '1': 27, '2': 28, '3': 29, '4': 30, '5': 31, '6': 32, '7': 33,
                    '8': 34, '9': 35}
     plate = plateID[0]
     index = plateID[2]
-    label = np.zeros(36)
-    label[encodingkey[str(plate)]] = 1
-
+    if number == True:
+        label = np.zeros(10)
+        label[encodingkey[str(plate)]-26] = 1
+    else:
+        label = np.zeros(26)
+        label[encodingkey[str(plate)]] = 1
     return index, label
 
 
 for img in imgset_warped[:]:
     croplicenseimage(img)
 
-print(Y_dataset[0])
+print(Y_dataset_letters[0])
+print(Y_dataset_numbers[0])
 
-X_dataset2 = [np.asarray(i) / 255.0 for i in X_dataset]
-X_dataset2 = np.asarray(X_dataset2)
-X_dataset2 = np.expand_dims(X_dataset2, axis=3)
-Y_dataset2 = np.asarray(Y_dataset)
+X_dataset_letters_norm = [np.asarray(i) / 255.0 for i in X_dataset_letters]
+X_dataset_letters_norm = np.asarray(X_dataset_letters_norm)
+X_dataset_letters_norm = np.expand_dims(X_dataset_letters_norm, axis=3)
+Y_dataset_letters_norm = np.asarray(Y_dataset_letters)
 
-print(X_dataset2.shape)
-print(Y_dataset2.shape)
+X_dataset_numbers_norm = [np.asarray(i) / 255.0 for i in X_dataset_numbers]
+X_dataset_numbers_norm = np.asarray(X_dataset_numbers_norm)
+X_dataset_numbers_norm = np.expand_dims(X_dataset_numbers_norm, axis=3)
+Y_dataset_numbers_norm = np.asarray(Y_dataset_numbers)
+
+print(X_dataset_numbers_norm.shape)
+print(Y_dataset_numbers_norm.shape)
 
 # for i in range(0, len(X_dataset2)):
 #     print(str(np.argmax(Y_dataset2[i])) )
@@ -335,60 +354,96 @@ def reset_weights(model):
         if hasattr(layer, 'kernel_initializer'):
             layer.kernel.initializer.run(session=session)
 
+#numberNet
+conv_model_numbers = models.Sequential()
+conv_model_numbers.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(100, 50, 1)))
+conv_model_numbers.add(layers.MaxPooling2D((2, 2)))
+conv_model_numbers.add(layers.Conv2D(64, (3, 3), activation='relu'))
+conv_model_numbers.add(layers.MaxPooling2D((2, 2)))
+conv_model_numbers.add(layers.Flatten())
+conv_model_numbers.add(layers.Dropout(0.5))
+conv_model_numbers.add(layers.Dense(512, activation='relu'))
+conv_model_numbers.add(layers.Dense(10, activation='softmax'))
 
-conv_model = models.Sequential()
-conv_model.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(100, 50, 1)))
-conv_model.add(layers.MaxPooling2D((2, 2)))
-conv_model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-conv_model.add(layers.MaxPooling2D((2, 2)))
-conv_model.add(layers.Flatten())
-conv_model.add(layers.Dropout(0.5))
-conv_model.add(layers.Dense(512, activation='relu'))
-conv_model.add(layers.Dense(36, activation='softmax'))
+LEARNING_RATE = 1e-5
+conv_model_numbers.compile(loss='categorical_crossentropy', optimizer=optimizers.RMSprop(lr=LEARNING_RATE), metrics=['acc'])
+conv_model_numbers.summary()
 
-LEARNING_RATE = 1e-4
-conv_model.compile(loss='categorical_crossentropy', optimizer=optimizers.RMSprop(lr=LEARNING_RATE), metrics=['acc'])
-conv_model.summary()
-
-EPOCHS = 11
+EPOCHS = 20
 BATCHES = 36
-reset_weights(conv_model)  # do if ya want
-history_conv = conv_model.fit(X_dataset2, Y_dataset2, validation_split=VALIDATION_SPLIT, epochs=EPOCHS,
+reset_weights(conv_model_numbers)  # do if ya want
+history_conv_numbers = conv_model_numbers.fit(X_dataset_numbers_norm, Y_dataset_numbers_norm, validation_split=VALIDATION_SPLIT, epochs=EPOCHS,
                               batch_size=BATCHES)
 
-plt.plot(history_conv.history['loss'])
-plt.plot(history_conv.history['val_loss'])
+plt.plot(history_conv_numbers.history['loss'])
+plt.plot(history_conv_numbers.history['val_loss'])
 plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['train loss', 'val loss'], loc='upper left')
 plt.show()
 
-plt.plot(history_conv.history['acc'])
-plt.plot(history_conv.history['val_acc'])
+plt.plot(history_conv_numbers.history['acc'])
+plt.plot(history_conv_numbers.history['val_acc'])
 plt.title('model accuracy')
 plt.ylabel('accuracy (%)')
 plt.xlabel('epoch')
 plt.legend(['train accuracy', 'val accuracy'], loc='upper left')
 plt.show()
 
+#letterNet
+conv_model_letters = models.Sequential()
+conv_model_letters.add(layers.Conv2D(32, (3, 3), activation='relu', input_shape=(100, 50, 1)))
+conv_model_letters.add(layers.MaxPooling2D((2, 2)))
+conv_model_letters.add(layers.Conv2D(64, (3, 3), activation='relu'))
+conv_model_letters.add(layers.MaxPooling2D((2, 2)))
+conv_model_letters.add(layers.Flatten())
+conv_model_letters.add(layers.Dropout(0.5))
+conv_model_letters.add(layers.Dense(512, activation='relu'))
+conv_model_letters.add(layers.Dense(26, activation='softmax'))
 
-def displayImage(index):
-    img = X_dataset2[index]
-    print(img.shape)
-    img_aug = np.expand_dims(img, axis=0)
-    #img_aug = np.expand_dims(img, axis=3)
-    y_predict = conv_model.predict(img_aug)[0]
-    img_show = img[:,:,0]
-    plt.imshow(img_show)
-    plt.show()
-    encodingkey = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9, 'K': 10, 'L': 11,
-                   'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19, 'U': 20, 'V': 21, 'W': 22,
-                   'X': 23, 'Y': 24, 'Z': 25, '0': 26, '1': 27, '2': 28, '3': 29, '4': 30, '5': 31, '6': 32, '7': 33,
-                   '8': 34, '9': 35}
-    inv_map = {v: k for k, v in encodingkey.items()}
-    caption = inv_map[np.argmax(y_predict)]
-    plt.title(str(caption))
+LEARNING_RATE = 1e-5
+conv_model_letters.compile(loss='categorical_crossentropy', optimizer=optimizers.RMSprop(lr=LEARNING_RATE), metrics=['acc'])
+conv_model_letters.summary()
+
+EPOCHS = 30
+BATCHES = 36
+reset_weights(conv_model_letters)  # do if ya want
+history_conv_letters = conv_model_letters.fit(X_dataset_letters_norm, Y_dataset_letters_norm, validation_split=VALIDATION_SPLIT, epochs=EPOCHS,
+                              batch_size=BATCHES)
+
+plt.plot(history_conv_letters.history['loss'])
+plt.plot(history_conv_letters.history['val_loss'])
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['train loss', 'val loss'], loc='upper left')
+plt.show()
+
+plt.plot(history_conv_letters.history['acc'])
+plt.plot(history_conv_letters.history['val_acc'])
+plt.title('model accuracy')
+plt.ylabel('accuracy (%)')
+plt.xlabel('epoch')
+plt.legend(['train accuracy', 'val accuracy'], loc='upper left')
+plt.show()
+#
+# def displayImage(index):
+#     img = X_dataset_numbers_norm[index]
+#     print(img.shape)
+#     img_aug = np.expand_dims(img, axis=0)
+#     #img_aug = np.expand_dims(img, axis=3)
+#     y_predict = conv_model_numbers.predict(img_aug)[0]
+#     img_show = img[:,:,0]
+#     plt.imshow(img_show)
+#     plt.show()
+#     encodingkey = {'A': 0, 'B': 1, 'C': 2, 'D': 3, 'E': 4, 'F': 5, 'G': 6, 'H': 7, 'I': 8, 'J': 9, 'K': 10, 'L': 11,
+#                    'M': 12, 'N': 13, 'O': 14, 'P': 15, 'Q': 16, 'R': 17, 'S': 18, 'T': 19, 'U': 20, 'V': 21, 'W': 22,
+#                    'X': 23, 'Y': 24, 'Z': 25, '0': 26, '1': 27, '2': 28, '3': 29, '4': 30, '5': 31, '6': 32, '7': 33,
+#                    '8': 34, '9': 35}
+#     inv_map = {v: k for k, v in encodingkey.items()}
+#     caption = np.argmax(y_predict)
+#     plt.title(str(caption))
 
 
 # interact(displayImage, 
@@ -399,27 +454,54 @@ def displayImage(index):
 #     displayImage(i)
 
 
-def predictimage():
+def predictimage_numbers():
     y_predict = []
 
-    for index in range(0, len(Y_dataset2)):
-        img = X_dataset2[index]
+    for index in range(0, len(Y_dataset_numbers_norm)):
+        img = X_dataset_numbers_norm[index]
         img_aug = np.expand_dims(img, axis=0)
-        y_predict.append(np.argmax(conv_model.predict(img_aug)[0]))
+        y_predict.append(np.argmax(conv_model_numbers.predict(img_aug)[0]))
+    return y_predict
+
+def predictimage_letters():
+    y_predict = []
+
+    for index in range(0, len(Y_dataset_letters_norm)):
+        img = X_dataset_letters_norm[index]
+        img_aug = np.expand_dims(img, axis=0)
+        y_predict.append(np.argmax(conv_model_letters.predict(img_aug)[0]))
     return y_predict
 
 
-y_predict = np.round(predictimage(), 0)
-yreal = []
-for i in range(0, len(Y_dataset2)):
-    yreal.append(np.argmax(Y_dataset2[i]))
 
-conv_model.save(path + "detection_CNN")
 
-conf = sklearn.metrics.confusion_matrix(yreal, y_predict)
+y_predict_numbers = np.round(predictimage_numbers(), 0)
+yreal_numbers = []
+y_predict_letters = np.round(predictimage_letters(), 0)
+yreal_letters = []
+
+for i in range(0, len(Y_dataset_numbers_norm)):
+    yreal_numbers.append(np.argmax(Y_dataset_numbers_norm[i]))
+for i in range(0, len(Y_dataset_letters_norm)):
+    yreal_letters.append(np.argmax(Y_dataset_letters_norm[i]))
+
+conv_model_numbers.save(path + "number_detection_CNN")
+conv_model_letters.save(path + "letter_detection_CNN")
+
+conf = sklearn.metrics.confusion_matrix(yreal_numbers, y_predict_numbers)
 plt.imshow(conf, cmap='binary', interpolation='None')
 plt.show()
-df_cm = pd.DataFrame(conf, index=[i for i in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"],
-                     columns=[i for i in "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"])
+df_cm = pd.DataFrame(conf, index=[i for i in "0123456789"],
+                     columns=[i for i in "0123456789"])
 plt.figure(figsize=(15, 9))
 sn.heatmap(df_cm, annot=True)
+plt.show()
+
+conf = sklearn.metrics.confusion_matrix(yreal_letters, y_predict_letters)
+plt.imshow(conf, cmap='binary', interpolation='None')
+plt.show()
+df_cm = pd.DataFrame(conf, index=[i for i in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"],
+                     columns=[i for i in "ABCDEFGHIJKLMNOPQRSTUVWXYZ"])
+plt.figure(figsize=(15, 9))
+sn.heatmap(df_cm, annot=True)
+plt.show()

@@ -1,4 +1,11 @@
 src/drive_data_collect/image_data*
+src/license_generation/pictures*
+src/license_generation/warpedpictures*
+src/license_generation/number_detection_CNN
+src/license_generation/letter_detection_CNN
+src/2020T1_competition/enph353/enph353_utils/scripts/NO_NAME*
+src/2020T1_competition/enph353/enph353_utils/scripts/ISTHIS*
+
 build
 devel
 */.ipynb_checkpoints

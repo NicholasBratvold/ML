@@ -57,7 +57,8 @@ class License_Detector():
         self.history = {'1' : [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8' : []}
         # initialize game
         rospy.init_node('license_publisher')
-        self.plate_model = tensorflow.keras.models.load_model(self.path + "detection_CNN")
+        self.plate_model_numbers = tensorflow.keras.models.load_model(self.path + "number_detection_CNN")
+        self.plate_model_letters = tensorflow.keras.models.load_model(self.path + "letter_detection_CNN")
         self.process_counter = 0
 
 
@@ -129,21 +130,27 @@ class License_Detector():
         #plt.show()
         # mask and threshold
         result_grey = result[:, :, 2]
-        thresh = 40
+        thresh = 20
         ret, result_binary = cv2.threshold(result_grey, thresh, 255, cv2.THRESH_BINARY)
+
         kernel = np.ones((5, 5), np.uint8)
-        result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_OPEN, kernel)
         result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_CLOSE, kernel)
+        result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_OPEN, kernel)
+        # kernel = np.ones((3, 3), np.uint8)
+        # result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_CLOSE, kernel)
+
         #plt.imshow(result_binary)
         #plt.figure("masked")
         #plt.show()
 
         # edge detext
-        edged = cv2.Canny(result_binary, 20, 150)
+        edged = cv2.Canny(result_binary, 0, 255)
         #plt.figure('edges')
         #plt.title('edges')
         #plt.imshow(edged)
         #plt.show()
+        # cv2.imshow("first mask", edged)
+        # cv2.waitKey(3)
 
         # compute contours
         _, contours, _= cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -173,9 +180,10 @@ class License_Detector():
                 rect[2] = rect_pts[np.argmax(s)]
                 tx, ty = rect[0]
                 bx, by = rect[2]
+
                 # make sure quality of image is decent
 
-                if (bx - tx) * (by - ty) > 50 * 50:
+                if (bx - tx) * (by - ty) > 60 * 120:
                     # compute the difference between the points -- the top-right
                     # will have the minumum difference and the bottom-left will
                     # have the maximum difference
@@ -199,8 +207,8 @@ class License_Detector():
                    # framenumber = self.process_counter % 30 +1
                     #frameinfo = cv2.putText(dst, str(framenumber), (30, 200), cv2.FONT_HERSHEY_PLAIN, 28,
                      #           (0, 0, 0), 10, cv2.LINE_AA)
-                    #cv2.imshow("plate", frameinfo)
-                    #cv2.waitKey(3)
+                    # cv2.imshow("plate", dst)
+                    # cv2.waitKey(3)
                     # some proof that its working
                     #plt.imshow(img_crop)
                     #plt.figure("whfdsaole")
@@ -314,18 +322,24 @@ class License_Detector():
         #     # plt.show()
 
     def cropper(self, img):
-        w = 200
-        h = 400
+        h,w,_ = img.shape
+        print(w)
+        print(h)
         dim = (50, 100)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # cv2.imshow("bw", img)
-        # cv2.waitKey(3)
-        thresh = 77
-        ret, img = cv2.threshold(img, thresh, 255, cv2.THRESH_BINARY)
+        cv2.imshow("bw", img)
+        cv2.waitKey(3)
+        thresh = 64
+        # img = cv2.adaptiveThreshold(img, 120, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,3)
+
+
+       # img = cv2.resize(img, (w, h))
+       #  img = cv2.adaptiveThreshold(img, 220, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 3)
+       #  kernel = np.ones((5, 5), np.uint8)
+       #  img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
 
         # cv2.imshow("thresh", img)
         # cv2.waitKey(3)
-        img = cv2.resize(img, (w, h))
         #img = cv2.Canny(img, 0, 255)
         cv2.imwrite(os.path.join(self.path + "warpedpictures/",
                                  "plate{}.png".format(self.process_counter)), img)
@@ -339,36 +353,49 @@ class License_Detector():
         a1 = cv2.resize(a1, dim)
         n0 = cv2.resize(n0, dim)
         n1 = cv2.resize(n1, dim)
+        kernel = np.ones((5, 5), np.uint8)
 
+
+        s = cv2.adaptiveThreshold(s, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 3)
+        s = cv2.morphologyEx(s, cv2.MORPH_OPEN, kernel)
+        a0 = cv2.adaptiveThreshold(a0, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        a0 = cv2.morphologyEx(a0, cv2.MORPH_OPEN, kernel)
+        a1 = cv2.adaptiveThreshold(a1, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        a1 = cv2.morphologyEx(a1, cv2.MORPH_OPEN, kernel)
+        n0 = cv2.adaptiveThreshold(n0, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        n0 = cv2.morphologyEx(n0, cv2.MORPH_OPEN, kernel)
+        n1 = cv2.adaptiveThreshold(n1, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        n1 = cv2.morphologyEx(n1, cv2.MORPH_OPEN, kernel)
         # s = cv2.Canny(s, 0, 255)
         # a0 = cv2.Canny(a0, 0, 255)
         # a1 = cv2.Canny(a1, 0, 255)
         # n0 = cv2.Canny(n0, 0, 255)
         # # n1 = cv2.Canny(n1, 0, 255)
-        # cv2.imshow("s", s)
-        # cv2.waitKey(3)
-        # cv2.imshow("a0", a0)
-        # cv2.waitKey(3)
-        # cv2.imshow("a1", a1)
-        # cv2.waitKey(3)
-        # cv2.imshow("n0", n0)
-        # cv2.waitKey(3)
-        # cv2.imshow("n1", n1)
-        # cv2.waitKey(3)
 
+        cv2.imshow("s", s)
+        cv2.waitKey(3)
+        cv2.imshow("a0", a0)
+        cv2.waitKey(3)
+        cv2.imshow("a1", a1)
+        cv2.waitKey(3)
+        cv2.imshow("n0", n0)
+        cv2.waitKey(3)
+        cv2.imshow("n1", n1)
+        cv2.waitKey(3)
 
 
         return s, a0, a1, n0, n1
 
     def detect_image(self, data):
-        cropped_img_set = []
+        cropped_img_set_letters = []
+        cropped_img_set_numbers = []
 
         s, a0, a1, n0, n1 = self.cropper(data)
-        cropped_img_set.append(s)
-        cropped_img_set.append(a0)
-        cropped_img_set.append(a1)
-        cropped_img_set.append(n0)
-        cropped_img_set.append(n1)
+        cropped_img_set_numbers.append(s)
+        cropped_img_set_letters.append(a0)
+        cropped_img_set_letters.append(a1)
+        cropped_img_set_numbers.append(n0)
+        cropped_img_set_numbers.append(n1)
 
         def labelimage(plateID):
 
@@ -382,8 +409,22 @@ class License_Detector():
             return label
         predicted = ""
 
-        for i in range(0,len(cropped_img_set)):
-            img = np.asarray(cropped_img_set[i])
+
+        img = np.asarray(cropped_img_set_numbers[0])
+        img_aug = np.expand_dims(img, axis=0)
+        img_aug = np.expand_dims(img_aug, axis=3)
+
+        # cv2.imshow("abouttabedetected", img)
+        # cv2.waitKey(3)
+
+        with graph1.as_default():
+            set_session(sess1)
+            predicted_label = self.plate_model_numbers.predict(img_aug)[0]
+            # print(predicted_label)
+        predicted += labelimage(np.argmax(predicted_label)+26)
+
+        for i in range(0,len(cropped_img_set_letters)):
+            img = np.asarray(cropped_img_set_letters[i])
             img_aug = np.expand_dims(img, axis=0)
             img_aug = np.expand_dims(img_aug, axis=3)
 
@@ -392,9 +433,22 @@ class License_Detector():
 
             with graph1.as_default():
                 set_session(sess1)
-                predicted_label = self.plate_model.predict(img_aug)[0]
+                predicted_label = self.plate_model_letters.predict(img_aug)[0]
                 # print(predicted_label)
             predicted += labelimage(np.argmax(predicted_label))
+        for i in range(1, len(cropped_img_set_numbers)):
+            img = np.asarray(cropped_img_set_numbers[i])
+            img_aug = np.expand_dims(img, axis=0)
+            img_aug = np.expand_dims(img_aug, axis=3)
+
+            # cv2.imshow("abouttabedetected", img)
+            # cv2.waitKey(3)
+
+            with graph1.as_default():
+                set_session(sess1)
+                predicted_label = self.plate_model_numbers.predict(img_aug)[0]
+                # print(predicted_label)
+            predicted += labelimage(np.argmax(predicted_label)+26)
 
 
         return predicted
@@ -408,7 +462,7 @@ class License_Detector():
         processed_image, plate_detected = self.process_image(data)
         if plate_detected:
             unparsed_string = self.detect_image(processed_image)
-            #print(unparsed_string)
+            print(unparsed_string)
             #print(unparsed_string[0])
 
 

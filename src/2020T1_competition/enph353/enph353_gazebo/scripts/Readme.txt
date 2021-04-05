@@ -1,0 +1,1 @@
+Make sure the blank_plate.png is in this directory. New plates will be shown on score tracker only if picture is in directory. 
