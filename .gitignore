@@ -11,3 +11,4 @@ devel
 */.ipynb_checkpoints
 src/2020T1_competition/enph353/enph353_gazebo/plates.csv
 src/2020T1_competition/enph353/enph353_gazebo/*.png
+src/2020T1_competition/enph353/enph353_gazebo/scripts/QR*

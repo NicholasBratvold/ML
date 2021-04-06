@@ -41,8 +41,12 @@ from gym.utils import seeding
 sess1 = tensorflow.Session()
 graph1 = tensorflow.get_default_graph()
 set_session(sess1)
+"""
+Change self.path variable
+There must be a letter_detection_CNN and a number_detection_CNN in path directory.
 
-
+This script currently starts the timer but needs to be removed.
+"""
 class License_Detector():
 
     def __init__(self, arg):
@@ -60,7 +64,8 @@ class License_Detector():
         self.plate_model_numbers = tensorflow.keras.models.load_model(self.path + "number_detection_CNN")
         self.plate_model_letters = tensorflow.keras.models.load_model(self.path + "letter_detection_CNN")
         self.process_counter = 0
-
+        #Set this to false to remove visuals
+        self.visuals = True
 
 
         self.plate_pub = rospy.Publisher('/license_plate', String, queue_size=10)
@@ -106,8 +111,8 @@ class License_Detector():
         # Threshold in hsv
         # THESE ARE REALLY GOOD DONT CHANGE
         hsv = cv2.cvtColor(img_crop, cv2.COLOR_BGR2HSV)
-        lower_spot_grey = np.array([0, 0, 90])
-        upper_spot_grey = np.array([20, 30, 210])
+        lower_spot_grey = np.array([0, 0, 91])
+        upper_spot_grey = np.array([30, 30, 210])
 
         lower_plate_grey = np.array([99, 1, 80])
         upper_plate_grey = np.array([120, 30, 180])
@@ -123,14 +128,15 @@ class License_Detector():
 
         # add plate and spot together
         result = plate + spot
-        #cv2.imshow("hsv altercation", result)
-        #cv2.waitKey(3)
-       # plt.imshow(result)
+        if self.visuals:
+            cv2.imshow("hsv altercation", result)
+            cv2.waitKey(3)
+        #plt.imshow(result)
         #plt.figure("whole")
         #plt.show()
         # mask and threshold
         result_grey = result[:, :, 2]
-        thresh = 20
+        thresh = 30
         ret, result_binary = cv2.threshold(result_grey, thresh, 255, cv2.THRESH_BINARY)
 
         kernel = np.ones((5, 5), np.uint8)
@@ -144,13 +150,14 @@ class License_Detector():
         #plt.show()
 
         # edge detext
-        edged = cv2.Canny(result_binary, 0, 255)
+        edged = cv2.Canny(result_binary, 0, 200)
         #plt.figure('edges')
         #plt.title('edges')
         #plt.imshow(edged)
         #plt.show()
-        # cv2.imshow("first mask", edged)
-        # cv2.waitKey(3)
+        if self.visuals:
+            cv2.imshow("first mask", edged)
+            cv2.waitKey(3)
 
         # compute contours
         _, contours, _= cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -182,15 +189,16 @@ class License_Detector():
                 bx, by = rect[2]
 
                 # make sure quality of image is decent
-
-                if (bx - tx) * (by - ty) > 60 * 120:
+                minheight = 120
+                minwidth = 80
+                if (bx - tx) * (by - ty) > minwidth*minheight:
                     # compute the difference between the points -- the top-right
                     # will have the minumum difference and the bottom-left will
                     # have the maximum difference
                     diff = np.diff(rect_pts, axis=1)
                     rect[1] = rect_pts[np.argmin(diff)]
                     rect[3] = rect_pts[np.argmax(diff)]
-                    targetwidth = 600
+                    targetwidth = 300
                     targetheight = 900
                     dst = np.array([
                         [0, 0],
@@ -203,7 +211,7 @@ class License_Detector():
                     M = cv2.getPerspectiveTransform(rect, dst)
                     dst = cv2.warpPerspective(img_crop, M, (targetwidth, targetheight))
                     #img_crop = cv2.drawContours(img_crop, [contours_poly[0]], 0, (0, 0, 255), 2)
-                    self.process_counter += 1
+                    #self.process_counter += 1
                    # framenumber = self.process_counter % 30 +1
                     #frameinfo = cv2.putText(dst, str(framenumber), (30, 200), cv2.FONT_HERSHEY_PLAIN, 28,
                      #           (0, 0, 0), 10, cv2.LINE_AA)
@@ -222,132 +230,31 @@ class License_Detector():
         processed_image = dst
         plate_detected = detected
         return processed_image, plate_detected
-        # processed_image = []
-        # HOMOGRAPHY_POINTS = 15
-        # # cv2.imshow("raw", cv_image)
-        # # cv2.waitKey(3)
-        # cv_image_copy = cv_image.copy()
-        # sift = cv2.xfeatures2d.SIFT_create()
-        #
-        # img = cv2.imread(self.path + "aplate_blank_flat.png")
-        #
-        # # #plt.imshow(img)
-        # targetheight = img.shape[0]
-        # targetwidth = img.shape[1]
-        #
-        # kp_image, desc_image = sift.detectAndCompute(img, None)
-        # # Feature matching
-        # index_params = dict(algorithm=0, trees=5)
-        # search_params = dict()
-        # flann = cv2.FlannBasedMatcher(index_params, search_params)
-        #
-        # frame = cv_image_copy
-        #
-        # grayframe = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # trainimage
-        # kp_grayframe, desc_grayframe = sift.detectAndCompute(grayframe, None)
-        # matches = flann.knnMatch(desc_image, desc_grayframe, k=2)
-        # good_points = []
-        # for m, n in matches:
-        #     if m.distance < 0.68 * n.distance:
-        #         good_points.append(m)
-        #
-        # if len(good_points) > HOMOGRAPHY_POINTS:
-        #     query_pts = np.float32([kp_image[m.queryIdx].pt for m in good_points]).reshape(-1, 1, 2)
-        #     train_pts = np.float32([kp_grayframe[m.trainIdx].pt for m in good_points]).reshape(-1, 1, 2)
-        #     matrix, mask = cv2.findHomography(query_pts, train_pts, cv2.RANSAC, 5.0)
-        #     matches_mask = mask.ravel().tolist()
-        #
-        #     # Perspective transform
-        #     h, w, _ = img.shape
-        #     print("SIFT IMAGE: " + str(img.shape))
-        #     pts = np.float32([[0, 0], [0, h], [w, h], [w, 0]]).reshape(-1, 1, 2)
-        #     dst = cv2.perspectiveTransform(pts, matrix)
-        #     # print(np.int32(dst))
-        #     homography = cv2.polylines(frame, [np.int32(dst)], True, (255, 0, 0), 3)
-        #     # plt.figure(str(i) + "matched")
-        #     # plt.imshow(frame)
-        #     # plt.show()
-        #
-        #     # If plate is identified, stretch it and save it.
-        #     rect_pts = np.int32(dst).reshape(4, 2)
-        #     rect = np.zeros((4, 2), dtype="float32")
-        #     # the top-left point has the smallest sum whereas the
-        #     # bottom-right has the largest sum
-        #     s = rect_pts.sum(axis=1)
-        #     rect[0] = rect_pts[np.argmin(s)]
-        #     rect[2] = rect_pts[np.argmax(s)]
-        #     # compute the difference between the points -- the top-right
-        #     # will have the minumum difference and the bottom-left will
-        #     # have the maximum difference
-        #     diff = np.diff(rect_pts, axis=1)
-        #     rect[1] = rect_pts[np.argmin(diff)]
-        #     rect[3] = rect_pts[np.argmax(diff)]
-        #
-        #     # now that we have our rectangle of points, let's compute
-        #     # the width of our new image
-        #     (tl, tr, br, bl) = rect
-        #     widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
-        #     widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
-        #     # ...and now for the height of our new image
-        #     heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
-        #     heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
-        #     # take the maximum of the width and height values to reach
-        #     # our final dimensions
-        #     # construct our destination points which will be used to
-        #     # map the screen to a top-down, "birds eye" view
-        #     dst = np.array([
-        #         [0, 0],
-        #         [targetwidth - 1, 0],
-        #         [targetwidth - 1, targetheight - 1],
-        #         [0, targetheight - 1]], dtype="float32")
-        #     # calculate the perspective transform matrix and warp
-        #     # the perspective to grab the screen
-        #     M = cv2.getPerspectiveTransform(rect, dst)
-        #     warp = cv2.warpPerspective(frame, M, (targetwidth, targetheight))
-        #     cv2.imshow("detected", warp)
-        #     cv2.waitKey(3)
-        #     # plt.figure("warped")
-        #     # plt.imshow(warp)
-        #     # plt.show()
-        #     #print(warp.shape)
-        #     processed_image = warp
-        #     plate_detected = True
-        # else:
-        #
-        #     framenotmatched = cv2.drawMatches(img, kp_image, grayframe, kp_grayframe, good_points, grayframe)
-        #     cv2.imshow("NOT!!! detected", framenotmatched)
-        #     cv2.waitKey(3)
-        #     # plt.figure("notmatched")
-        #     # plt.imshow(framenotmatched)
-        #     # plt.show()
+
 
     def cropper(self, img):
         h,w,_ = img.shape
-        print(w)
-        print(h)
+        # print(w)
+        # print(h)
         dim = (50, 100)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        cv2.imshow("bw", img)
-        cv2.waitKey(3)
+        if self.visuals:
+            cv2.imshow("bw", img)
+            cv2.waitKey(3)
         thresh = 64
         # img = cv2.adaptiveThreshold(img, 120, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,3)
 
 
-       # img = cv2.resize(img, (w, h))
-       #  img = cv2.adaptiveThreshold(img, 220, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 3)
-       #  kernel = np.ones((5, 5), np.uint8)
-       #  img = cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
-
         # cv2.imshow("thresh", img)
         # cv2.waitKey(3)
         #img = cv2.Canny(img, 0, 255)
-        cv2.imwrite(os.path.join(self.path + "warpedpictures/",
-                                 "plate{}.png".format(self.process_counter)), img)
-        s = img[int(h / 3.0):int(2.0 * h / 3.0), int(w / 2):w]
-        a0 = img[int(2.0 * h / 3.0):int(8 * h / 9.0), 0:int(w / 4.0)]
-        a1 = img[int(2 * h / 3.0):int(8 * h / 9.0), int(w / 4.0):int(w / 2.0)]
-        n0 = img[int(2 * h / 3.0):int(8 * h / 9.0), int(w / 2.0):int(3 * w / 4.0)]
-        n1 = img[int(2 * h / 3.0):int(8 * h / 9.0), int(3 * w / 4.0):w]
+        # cv2.imwrite(os.path.join(self.path + "warpedpictures/",
+        #                          "plate{}.png".format(self.process_counter)), img)
+        s = img[int(h / 2.6):int( h / 1.6), int(w / 2):w]
+        a0 = img[int(h / 1.44):int(h / 1.16), 0:int(w / 4.0)]
+        a1 = img[int(h / 1.44):int(h / 1.16), int(w / 4.0):int(w / 2.0)]
+        n0 = img[int(h / 1.44):int(h / 1.16), int(w / 2.0):int(3 * w / 4.0)]
+        n1 = img[int(h / 1.44):int(h / 1.16), int(3 * w / 4.0):w]
         s = cv2.resize(s, dim)
         a0 = cv2.resize(a0, dim)
         a1 = cv2.resize(a1, dim)
@@ -355,6 +262,10 @@ class License_Detector():
         n1 = cv2.resize(n1, dim)
         kernel = np.ones((5, 5), np.uint8)
 
+        # cv2.imshow("b", s)
+        # cv2.waitKey(3)
+        # cv2.imshow("w", a1)
+        # cv2.waitKey(3)
 
         s = cv2.adaptiveThreshold(s, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 3)
         s = cv2.morphologyEx(s, cv2.MORPH_OPEN, kernel)
@@ -371,17 +282,17 @@ class License_Detector():
         # a1 = cv2.Canny(a1, 0, 255)
         # n0 = cv2.Canny(n0, 0, 255)
         # # n1 = cv2.Canny(n1, 0, 255)
-
-        cv2.imshow("s", s)
-        cv2.waitKey(3)
-        cv2.imshow("a0", a0)
-        cv2.waitKey(3)
-        cv2.imshow("a1", a1)
-        cv2.waitKey(3)
-        cv2.imshow("n0", n0)
-        cv2.waitKey(3)
-        cv2.imshow("n1", n1)
-        cv2.waitKey(3)
+        if self.visuals:
+            cv2.imshow("s", s)
+            cv2.waitKey(3)
+            cv2.imshow("a0", a0)
+            cv2.waitKey(3)
+            cv2.imshow("a1", a1)
+            cv2.waitKey(3)
+            cv2.imshow("n0", n0)
+            cv2.waitKey(3)
+            cv2.imshow("n1", n1)
+            cv2.waitKey(3)
 
 
         return s, a0, a1, n0, n1
@@ -462,16 +373,30 @@ class License_Detector():
         processed_image, plate_detected = self.process_image(data)
         if plate_detected:
             unparsed_string = self.detect_image(processed_image)
-            print(unparsed_string)
+            print("Guessed: " + unparsed_string)
             #print(unparsed_string[0])
 
 
             try:
                 self.history[unparsed_string[0]].append(unparsed_string)
+                self.process_counter += 1
                 temp_string = self.most_common_plate(unparsed_string[0])[0]
+                if self.process_counter % 30 == 0:
+                    self.process_counter = 0
+                    for j in range(0,len(self.history)):
+                        print("////////////////////")
+                        print("Position:  " + str(j+1))
+                        history_j = self.history[str(j+1)]
+                        if len(history_j) > 0:
+                            print(self.history[str(j+1)])
+                            print("The most common plate in this position is: " + self.most_common_plate(str(j+1))[0])
+                        else:
+                            print("Empty")
+                        print("--------------------")
                 #print(temp_string)
                 self.plate_pub.publish(str(self.TeamID + "," + self.password + ","+temp_string[0]+"," + temp_string[1:]))
-                print("published: " + str(self.TeamID + "," + self.password + "," + temp_string[0] + "," + temp_string[1:]))
+                print("Published: " + str(self.TeamID + "," + self.password + "," + temp_string[0] + "," + temp_string[1:]))
+                print("      ")
                 #self.plate_pub.publish(str(self.TeamID + "," + self.password + ",-1,0000"))
             except KeyError:
                 pass
