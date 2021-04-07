@@ -11,9 +11,6 @@ https://www.pyimagesearch.com/2014/05/05/building-pokedex-python-opencv-perspect
 
 https://stackoverflow.com/questions/43382045/keras-realtime-augmentation-adding-noise-and-contrast
 
-path is is currently "/home/fizzer/ros_ws/src/license_generation/"
-there must be a pictures directory in license_generation for this to work
-
 """
 
 # Commented out IPython magic to ensure Python compatibility.
@@ -50,30 +47,30 @@ print(cv2.__version__)
 #select number of unique plates to be made
 #each plate will be augmented 3 additional times.
 #total number of plates generated = NUMBER_OF_PLATES*4
-NUMBER_OF_PLATES = 1000
+NUMBER_OF_PLATES = 100
 SAVEH = 900
 SAVEW = SAVEH/3
-PATH = "/home/fizzer/ros_ws/src/license_generation/"
+PATH = os.path.dirname(os.path.realpath(__file__)) + "/"
+
+if not os.path.exists(PATH + "pictures"):
+    print("Made directory ./pictures")
+    os.makedirs(PATH + "pictures")
+
 
 #takes an image and apply some bluring and noise to imitate actual photos
 def blur_n_noise(img):
     randomint = random.randint(1, 3)
 
 
-
+    #gaussian blur
     for i in range(0, randomint):
         img = cv2.GaussianBlur(img, (9, 9), 0)
         img = cv2.GaussianBlur(img, (27, 27), 0)
-        # img = cv2.GaussianBlur(img, (27, 27), 0)
+        img = cv2.GaussianBlur(img, (27, 27), 0)
         img = cv2.GaussianBlur(img, (27, 27), 0)
         img = cv2.GaussianBlur(img, (9, 9), 0)
 
-    # VARIABILITY = 6
-    # deviation = VARIABILITY * random.random()
-    # noise = np.random.normal(0, deviation, img.shape)
-    # img += noise
-    # np.clip(img, 0., 255.)
-
+    #motion blur on diagonals
     kernel_size = 2*random.randint(1,9)+1
     if randomint % 2 == 0:
         kernel_r = np.identity(kernel_size)
@@ -85,6 +82,7 @@ def blur_n_noise(img):
 
     img = cv2.filter2D(img, -1, kernel_r)
 
+    #noise
     VARIABILITY = 6
     deviation = VARIABILITY * random.random()
     noise = np.random.normal(0, deviation, img.shape)
@@ -98,8 +96,7 @@ def blur_n_noise(img):
 
 for i in range(0, NUMBER_OF_PLATES):
     print("making new plate: " + str(i))
-    path = os.path.dirname(os.path.realpath(__file__)) + "/"
-    texture_path = '../media/materials/textures/'
+    path = PATH
 
     # Pick two random letters
     plate_alpha = ""
@@ -138,7 +135,6 @@ for i in range(0, NUMBER_OF_PLATES):
     unlabelled = np.concatenate((255 * np.ones(shape=[600, 600, 3],
                                                dtype=np.uint8), spot_w_plate), axis=0)
 
-    path = "/home/fizzer/ros_ws/src/license_generation/"
     unlabelled_threshold = unlabelled.copy()
     unlabelled_threshold = cv2.cvtColor(unlabelled_threshold, cv2.COLOR_BGR2GRAY)
 

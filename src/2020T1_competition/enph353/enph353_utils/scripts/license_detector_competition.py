@@ -57,7 +57,10 @@ class License_Detector():
         self.TeamID = 'ISTHIS'
         self.password = 'working'
         self.bridge = CvBridge()
-        self.path = "/home/fizzer/ros_ws/src/license_generation/"
+        self.path_dir =  os.path.dirname(os.path.realpath(__file__)) + "/"
+
+        #this path should be "~/ros_ws/src/licensegeneration" or similiar.
+        self.path = "../../../../license_generation/"
         self.history = {'1' : [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8' : []}
         # initialize game
         rospy.init_node('license_publisher')
@@ -65,7 +68,7 @@ class License_Detector():
         self.plate_model_letters = tensorflow.keras.models.load_model(self.path + "letter_detection_CNN")
         self.process_counter = 0
         #Set this to false to remove visuals
-        self.visuals = True
+        self.visuals = False
 
 
         self.plate_pub = rospy.Publisher('/license_plate', String, queue_size=10)
@@ -96,14 +99,14 @@ class License_Detector():
         detected = False
         dst = []
         img_orig = cv_image
-        #cv2.imshow("raw", cv_image)
-        #cv2.waitKey(3)
-        #img_orig.shape
+
+        if self.visuals:
+            cv2.imshow("raw", cv_image)
+            cv2.waitKey(3)
+
 
         row, col, plane = img_orig.shape
-        #plt.imshow(img_orig)
-        #plt.figure("whole")
-        #plt.show()
+
         # crop image
         img = img_orig[int(row * 2 / 5):int(row * 7 / 8), :, :].copy()
         img_crop = img.copy()
@@ -131,9 +134,7 @@ class License_Detector():
         if self.visuals:
             cv2.imshow("hsv altercation", result)
             cv2.waitKey(3)
-        #plt.imshow(result)
-        #plt.figure("whole")
-        #plt.show()
+
         # mask and threshold
         result_grey = result[:, :, 2]
         thresh = 30
@@ -142,19 +143,11 @@ class License_Detector():
         kernel = np.ones((5, 5), np.uint8)
         result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_CLOSE, kernel)
         result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_OPEN, kernel)
-        # kernel = np.ones((3, 3), np.uint8)
-        # result_binary = cv2.morphologyEx(result_binary, cv2.MORPH_CLOSE, kernel)
 
-        #plt.imshow(result_binary)
-        #plt.figure("masked")
-        #plt.show()
 
         # edge detext
         edged = cv2.Canny(result_binary, 0, 200)
-        #plt.figure('edges')
-        #plt.title('edges')
-        #plt.imshow(edged)
-        #plt.show()
+
         if self.visuals:
             cv2.imshow("first mask", edged)
             cv2.waitKey(3)
@@ -164,17 +157,12 @@ class License_Detector():
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:1]
         if len(contours) > 0:
             contours_poly = [None] * len(contours)
-            #boundRect = [None] * len(contours)
 
             contours_poly[0] = cv2.approxPolyDP(contours[0], 20, True)
-            # rect = cv2.minAreaRect(cnt)
-            # box = cv2.boxPoints(rect)
-            # print(contours_poly[0])
-            # print(boundRect[0])
+
 
             # make sure its square-ish and nothing else!
             if len(contours_poly[0]) == 4:
-                # print(boundRect[0])
 
                 rectPoints = contours_poly[0]
 
@@ -189,8 +177,8 @@ class License_Detector():
                 bx, by = rect[2]
 
                 # make sure quality of image is decent
-                minheight = 120
-                minwidth = 80
+                minheight = 100
+                minwidth = 60
                 if (bx - tx) * (by - ty) > minwidth*minheight:
                     # compute the difference between the points -- the top-right
                     # will have the minumum difference and the bottom-left will
@@ -210,23 +198,21 @@ class License_Detector():
                     # the perspective to grab the plate
                     M = cv2.getPerspectiveTransform(rect, dst)
                     dst = cv2.warpPerspective(img_crop, M, (targetwidth, targetheight))
-                    #img_crop = cv2.drawContours(img_crop, [contours_poly[0]], 0, (0, 0, 255), 2)
-                    #self.process_counter += 1
-                   # framenumber = self.process_counter % 30 +1
-                    #frameinfo = cv2.putText(dst, str(framenumber), (30, 200), cv2.FONT_HERSHEY_PLAIN, 28,
-                     #           (0, 0, 0), 10, cv2.LINE_AA)
-                    # cv2.imshow("plate", dst)
-                    # cv2.waitKey(3)
-                    # some proof that its working
-                    #plt.imshow(img_crop)
-                    #plt.figure("whfdsaole")
-                    #plt.show()
-                    #plt.imshow(dst)
-                    #plt.figure("whfdsaole")
-                    #plt.show()
 
                     # detected is true when a
                     detected = True
+
+                    #standard deviation of image incase garbage is picked up
+                    dst_mean = np.mean(dst)
+                    std_dst = np.std(dst - dst_mean)
+                    #print(std_dst)
+
+                    #Actual plates standard deviation range from 10 to 37
+                    if std_dst < 8 or std_dst > 40:
+                        detected = False
+
+
+
         processed_image = dst
         plate_detected = detected
         return processed_image, plate_detected
@@ -242,12 +228,9 @@ class License_Detector():
             cv2.imshow("bw", img)
             cv2.waitKey(3)
         thresh = 64
-        # img = cv2.adaptiveThreshold(img, 120, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY,11,3)
 
 
-        # cv2.imshow("thresh", img)
-        # cv2.waitKey(3)
-        #img = cv2.Canny(img, 0, 255)
+
         # cv2.imwrite(os.path.join(self.path + "warpedpictures/",
         #                          "plate{}.png".format(self.process_counter)), img)
         s = img[int(h / 2.6):int( h / 1.6), int(w / 2):w]
@@ -282,16 +265,22 @@ class License_Detector():
         # a1 = cv2.Canny(a1, 0, 255)
         # n0 = cv2.Canny(n0, 0, 255)
         # # n1 = cv2.Canny(n1, 0, 255)
+
         if self.visuals:
-            cv2.imshow("s", s)
+            s_copy = cv2.resize(s, (200,400))
+            a0_copy = cv2.resize(a0, (200, 400))
+            a1_copy = cv2.resize(a1, (200, 400))
+            n0_copy = cv2.resize(n0, (200, 400))
+            n1_copy = cv2.resize(n1, (200, 400))
+            cv2.imshow("spot", s_copy)
             cv2.waitKey(3)
-            cv2.imshow("a0", a0)
+            cv2.imshow("a0", a0_copy)
             cv2.waitKey(3)
-            cv2.imshow("a1", a1)
+            cv2.imshow("a1", a1_copy)
             cv2.waitKey(3)
-            cv2.imshow("n0", n0)
+            cv2.imshow("n0", n0_copy)
             cv2.waitKey(3)
-            cv2.imshow("n1", n1)
+            cv2.imshow("n1", n1_copy)
             cv2.waitKey(3)
 
 
@@ -388,8 +377,8 @@ class License_Detector():
                         print("Position:  " + str(j+1))
                         history_j = self.history[str(j+1)]
                         if len(history_j) > 0:
-                            print(self.history[str(j+1)])
-                            print("The most common plate in this position is: " + self.most_common_plate(str(j+1))[0])
+                            print(self.history[str(j+1)][1:])
+                            print("The most common plate in this position is: " + self.most_common_plate(str(j+1))[0][1:])
                         else:
                             print("Empty")
                         print("--------------------")
