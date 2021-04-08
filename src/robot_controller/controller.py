@@ -19,7 +19,7 @@ sess = tf.Session()
 graph = tf.get_default_graph()
 set_session(sess)
 
-MODEL_PATH_OUTER = '../drive_data_collect/drive_model'
+MODEL_PATH_OUTER = '../drive_data_collect/drive_model_improved_2'
 MODEL_PATH_INNER = '../drive_data_collect/drive_model_inner'
 
 # constants
@@ -74,6 +74,7 @@ def check_car(img, x1, y1, x2, y2, threshold=CAR_THRESHOLD):
     dark = (img_diff == 0) * (img_mean < 30)
     return np.sum(dark) > threshold
 
+
 '''
 Reads camera data and robot commands and saves along with linear and angular movement to use as training data.
 '''
@@ -81,7 +82,6 @@ class RobotController():
 
     def __init__(self):
         rospy.init_node('controller')
-
 
         self.bridge = CvBridge()
         self.drive_model_outer = keras.models.load_model(MODEL_PATH_OUTER)
@@ -95,6 +95,8 @@ class RobotController():
         self.last_crosswalk = rospy.get_time()
 
         self.state = State.outer_loop
+        self.last_linear = 0.0
+        self.num_crosswalks = 0
 
         rospy.sleep(1)
         self._pub_move(0.4, 1.5)
@@ -119,6 +121,8 @@ class RobotController():
             if check_crosswalk(cv_image) and cur_time - self.last_crosswalk > 4:
                 print('Stopping for the nice man.')
                 self.state = State.stop_crosswalk
+                self.num_crosswalks += 1
+
                 self._pub_stop()
                 # wait a lil
                 rospy.sleep(0.25)
@@ -127,7 +131,7 @@ class RobotController():
 
                 # TODO: check if outer license plates have been read
                 # temp
-                if cur_time - self.last_time >= 30:
+                if self.num_crosswalks >= 2:
                     self.state = State.turn_intersection_ready
                     print('Turn in ready.')
 
@@ -215,7 +219,9 @@ class RobotController():
     
     ''' Get prediction from neural net and publish a movement for it. '''
     def _pub_drive_prediction(self, cv_image_small, is_inner):
+            # TODO: change this back if data gets normalized again
             cv_image_norm = cv_image_small/255
+            # cv_image_norm = cv_image_small
             
             drive_predict = None
             img_aug = np.expand_dims(cv_image_norm, axis=0)
@@ -227,27 +233,34 @@ class RobotController():
                     drive_predict = self.drive_model_inner.predict(img_aug)[0]
                 else:
                     drive_predict = self.drive_model_outer.predict(img_aug)[0]
+                    drive_predict[0] *= 1.2
+                    drive_predict[1] *= 1.5
 
-            self._pub_move(min(drive_predict[0], 0.4), drive_predict[1])
+            self._pub_move(min(drive_predict[0], 100), drive_predict[1])
     
     ''' Publish a move command with specified linear and angular velocity. '''
     def _pub_move(self, lin, ang):
+            if lin - self.last_linear > 0.5:
+                lin = self.last_linear + 0.5
+
             move = Twist()
             move.linear.x = lin
             move.angular.z = ang
 
+            self.last_linear = lin
             self.cmd_vel_pub.publish(move)
             print("lin:{}, ang:{}".format(move.linear.x, move.angular.z))
 
     ''' Stop robot, slowing a bit to account for momentum. '''
     def _pub_stop(self):
-        self._pub_move(0.35, 0)
+        lst = self.last_linear
+        self._pub_move(lst * 0.8, 0)
         rospy.sleep(0.1)
-        self._pub_move(0.25, 0)
+        self._pub_move(lst * 0.6, 0)
         rospy.sleep(0.1)
-        self._pub_move(0.15, 0)
+        self._pub_move(lst * 0.4, 0)
         rospy.sleep(0.1)
-        self._pub_move(0.05, 0.0)
+        self._pub_move(lst * 0.2, 0.0)
         rospy.sleep(0.1)
         self._pub_move(0.0, 0.0)
 
