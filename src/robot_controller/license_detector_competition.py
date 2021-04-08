@@ -62,6 +62,7 @@ class License_Detector():
         #this path should be "~/ros_ws/src/licensegeneration" or similiar.
         self.path = "../license_generation/"
         self.history = {'1' : [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8' : []}
+        self.predictions = {'1' : [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8' : []}
         # initialize game
         rospy.init_node('license_publisher')
         self.plate_model_numbers = tensorflow.keras.models.load_model(self.path + "number_detection_CNN")
@@ -230,8 +231,8 @@ class License_Detector():
         # cv2.imwrite(os.path.join(self.path + "warpedpictures/",
         #                          "plate{}.png".format(self.process_counter)), img)
         s = img[int(h / 2.6):int( h / 1.6), int(w / 2):w]
-        a0 = img[int(h / 1.44):int(h / 1.16), 0:int(w / 4.0)]
-        a1 = img[int(h / 1.44):int(h / 1.16), int(w / 4.0):int(w / 2.0)]
+        a0 = img[int(h / 1.44):int(h / 1.16), 0:int(w / 4)]
+        a1 = img[int(h / 1.44):int(h / 1.16), int(w / 4):int(w / 2.0)]
         n0 = img[int(h / 1.44):int(h / 1.16), int(w / 2.0):int(3 * w / 4.0)]
         n1 = img[int(h / 1.44):int(h / 1.16), int(3 * w / 4.0):w]
         s = cv2.resize(s, dim)
@@ -287,6 +288,41 @@ class License_Detector():
 
         return s, a0, a1, n0, n1
 
+    def add_to_predictions(self, spot, index,prediction):
+        prediction_vec = np.zeros((5,36))
+        prediction_weight = 1.3
+        try:
+            if len(self.predictions[spot]) < 1:
+                self.predictions[spot].append(prediction_vec)
+                prediction_weight = 1
+                #return
+        except KeyError:
+            pass
+
+        if len(prediction) == 10:
+
+            for i in range(0, len(prediction)):
+                prediction_vec[index][i + 26] += prediction[i]*prediction_weight
+        else:
+            for i in range(0, len(prediction)):
+                prediction_vec[index][i] += prediction[i]*prediction_weight
+
+        #print("predicted _ vec")img
+        # for i in range(0,36):
+
+        self.predictions[spot][0][index] += prediction_vec[index]
+        #print(self.predictions[spot][0])
+
+    def labelimage(self, plateID):
+
+        encodingkey = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K',
+                       11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U',
+                       21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: '0', 27: '1', 28: '2', 29: '3', 30: '4',
+                       31: '5', 32: '6', 33: '7', 34: '8', 35: '9'}
+
+        label = encodingkey[plateID]
+        return label
+
     def detect_image(self, data):
         cropped_img_set_letters = []
         cropped_img_set_numbers = []
@@ -298,16 +334,7 @@ class License_Detector():
         cropped_img_set_numbers.append(n0)
         cropped_img_set_numbers.append(n1)
 
-        def labelimage(plateID):
 
-            encodingkey = {0: 'A', 1: 'B', 2: 'C', 3: 'D', 4: 'E', 5: 'F', 6: 'G', 7: 'H', 8: 'I', 9: 'J', 10: 'K',
-                           11: 'L', 12: 'M', 13: 'N', 14: 'O', 15: 'P', 16: 'Q', 17: 'R', 18: 'S', 19: 'T', 20: 'U',
-                           21: 'V', 22: 'W', 23: 'X', 24: 'Y', 25: 'Z', 26: '0', 27: '1', 28: '2', 29: '3', 30: '4',
-                           31: '5', 32: '6', 33: '7', 34: '8', 35: '9'}
-
-
-            label = encodingkey[plateID]
-            return label
         predicted = ""
 
 
@@ -321,8 +348,12 @@ class License_Detector():
         with graph1.as_default():
             set_session(sess1)
             predicted_label = self.plate_model_numbers.predict(img_aug)[0]
-            # print(predicted_label)
-        predicted += labelimage(np.argmax(predicted_label)+26)
+            predicted_label += self.plate_model_numbers.predict(img_aug)[0]
+            #print(predicted_label)
+        predicted += self.labelimage(np.argmax(predicted_label)+26)
+
+        predicted_spot = predicted
+        self.add_to_predictions(predicted_spot,0, predicted_label)
 
         for i in range(0,len(cropped_img_set_letters)):
             img = np.asarray(cropped_img_set_letters[i])
@@ -335,8 +366,11 @@ class License_Detector():
             with graph1.as_default():
                 set_session(sess1)
                 predicted_label = self.plate_model_letters.predict(img_aug)[0]
-                # print(predicted_label)
-            predicted += labelimage(np.argmax(predicted_label))
+                predicted_label += self.plate_model_letters.predict(img_aug)[0]
+                #print(predicted_label)
+            predicted += self.labelimage(np.argmax(predicted_label))
+            self.add_to_predictions(predicted_spot, i+1, predicted_label)
+
         for i in range(1, len(cropped_img_set_numbers)):
             img = np.asarray(cropped_img_set_numbers[i])
             img_aug = np.expand_dims(img, axis=0)
@@ -348,9 +382,9 @@ class License_Detector():
             with graph1.as_default():
                 set_session(sess1)
                 predicted_label = self.plate_model_numbers.predict(img_aug)[0]
-                # print(predicted_label)
-            predicted += labelimage(np.argmax(predicted_label)+26)
-
+                #print(predicted_label)
+            predicted += self.labelimage(np.argmax(predicted_label)+26)
+            self.add_to_predictions(predicted_spot, i+2, predicted_label)
 
         return predicted
 
@@ -361,7 +395,7 @@ class License_Detector():
 
         str = list[0]
         print(list)
-        print(str + "first guess")
+        #print(str + "first guess")
 
         for i in list:
             curr_frequency = list.count(i)
@@ -371,7 +405,12 @@ class License_Detector():
         print(str + "most common")
         return str
 
-
+    def most_common_plate_weighted(self, number):
+        str = ""
+        for i in range(0,5):
+            str += self.labelimage(np.argmax(self.predictions[number][0][i]))
+        print(str + "most common weighted")
+        return(str)
 
     def step(self, data):
         processed_image, plate_detected = self.process_image(data)
@@ -384,7 +423,7 @@ class License_Detector():
             try:
                 self.history[unparsed_string[0]].append(unparsed_string)
                 self.process_counter += 1
-                temp_string = self.most_common_plate(unparsed_string[0])
+                temp_string = self.most_common_plate_weighted(unparsed_string[0])
                 if self.process_counter % 30 == 0:
                     self.process_counter = 0
                     for j in range(0,len(self.history)):
@@ -394,6 +433,10 @@ class License_Detector():
                         if len(history_j) > 0:
                             print(self.history[str(j+1)][1:])
                             print("The most common plate in this position is: " + self.most_common_plate(str(j+1))[1:])
+                            print("prediction label forr this is: ")
+                            print(self.predictions[str(j+1)][0])
+                            print("most common weighted plate is: "+ self.most_common_plate_weighted(str(j+1))[1:])
+
                         else:
                             print("Empty")
                         print("--------------------")
@@ -404,8 +447,11 @@ class License_Detector():
                 print("      ")
 
                 # end if pos 7/8 have been detected.
-                if len(self.history["7"]) and len(self.history["8"]) > 5:
+                if len(self.history["7"]) and len(self.history["8"]) > 3:
                     self.plate_pub.publish(str(self.TeamID + "," + self.password + "," + "-1" + "," + temp_string[1:]))
+                    while True:
+                        donothing = 1
+
 
                 #self.plate_pub.publish(str(self.TeamID + "," + self.password + ",-1,0000"))
             except KeyError:

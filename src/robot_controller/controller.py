@@ -28,13 +28,16 @@ MODEL_PATH_OUTER = '../drive_data_collect/drive_model_improved_2'
 MODEL_PATH_INNER = '../drive_data_collect/drive_model_inner'
 
 # constants
+SPEED_SCALE = 1.0
+TURN_SCALE = 1.4
+
 CROSSWALK_ROW = 450
 CROSSWALK_MIN_COL = 100
 CROSSWALK_MAX_COL = 1100
 
-PED_MIN_ROW = 300
+PED_MIN_ROW = 280
 PED_MAX_ROW = 600
-PED_MIN_COL = 350
+PED_MIN_COL = 310
 PED_MAX_COL = 820
 
 CAR_MIN_ROW = 300
@@ -176,7 +179,7 @@ class RobotController():
 
                 self.last_time = rospy.get_time()
             else:
-                self._pub_drive_prediction(cv_image_small, is_inner=False, linear_limit=0.5)
+                self._pub_drive_prediction(cv_image_small, is_inner=False, linear_limit=0.45)
 
         elif self.state == State.turn_intersection:
             # TODO: possibly change to using camera to decide when to stop
@@ -249,8 +252,8 @@ class RobotController():
                     drive_predict = self.drive_model_inner.predict(img_aug)[0]
                 else:
                     drive_predict = self.drive_model_outer.predict(img_aug)[0]
-                    drive_predict[0] *= 1.2
-                    drive_predict[1] *= 1.5
+                    drive_predict[0] *= SPEED_SCALE
+                    drive_predict[1] *= TURN_SCALE
 
             self._pub_move(min(drive_predict[0], linear_limit), drive_predict[1])
     
@@ -267,7 +270,7 @@ class RobotController():
 
             self.last_linear = lin
             self.cmd_vel_pub.publish(move)
-            print("lin:{}, ang:{}".format(np.around(move.linear.x, 3), np.around(move.angular.z, 3)))
+            # print("lin:{:.3}, ang:{:.3}".format(float(move.linear.x), float(move.angular.z)))
 
     ''' Stop robot, slowing a bit to account for momentum. '''
     def _pub_stop(self):
