@@ -68,14 +68,14 @@ class License_Detector():
         self.plate_model_letters = tensorflow.keras.models.load_model(self.path + "letter_detection_CNN")
         self.process_counter = 0
         #Set this to false to remove visuals
-        self.visuals = False
+        self.visuals = True
 
 
         self.plate_pub = rospy.Publisher('/license_plate', String, queue_size=10)
 
         #start step loop
-        sleep(1)
-        self.image_feed = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.step, queue_size=3)
+        sleep(2)
+        self.image_feed = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.step, queue_size=5)
 
         if arg == "-stop":
             self.plate_pub.publish(str(self.TeamID + "," + self.password + ",-1,0000"))
@@ -100,9 +100,9 @@ class License_Detector():
         dst = []
         img_orig = cv_image
 
-        if self.visuals:
-            cv2.imshow("raw", cv_image)
-            cv2.waitKey(3)
+        # if self.visuals:
+        #     cv2.imshow("raw", cv_image)
+        #     cv2.waitKey(3)
 
 
         row, col, plane = img_orig.shape
@@ -132,7 +132,7 @@ class License_Detector():
         # add plate and spot together
         result = plate + spot
         if self.visuals:
-            cv2.imshow("hsv altercation", result)
+            cv2.imshow("hsv", result)
             cv2.waitKey(3)
 
         # mask and threshold
@@ -148,9 +148,9 @@ class License_Detector():
         # edge detext
         edged = cv2.Canny(result_binary, 0, 200)
 
-        if self.visuals:
-            cv2.imshow("first mask", edged)
-            cv2.waitKey(3)
+        # if self.visuals:
+        #     cv2.imshow("first mask", edged)
+        #     cv2.waitKey(3)
 
         # compute contours
         _, contours, _= cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -177,8 +177,8 @@ class License_Detector():
                 bx, by = rect[2]
 
                 # make sure quality of image is decent
-                minheight = 100
-                minwidth = 60
+                minheight = 120
+                minwidth = 100
                 if (bx - tx) * (by - ty) > minwidth*minheight:
                     # compute the difference between the points -- the top-right
                     # will have the minumum difference and the bottom-left will
@@ -199,16 +199,12 @@ class License_Detector():
                     M = cv2.getPerspectiveTransform(rect, dst)
                     dst = cv2.warpPerspective(img_crop, M, (targetwidth, targetheight))
 
-                    # detected is true when a
                     detected = True
 
                     #standard deviation of image incase garbage is picked up
-                    dst_mean = np.mean(dst)
-                    std_dst = np.std(dst - dst_mean)
-                    #print(std_dst)
-
-                    #Actual plates standard deviation range from 10 to 37
-                    if std_dst < 8 or std_dst > 40:
+                    ret, masked_dst = cv2.threshold(dst, 80, 255, cv2.THRESH_BINARY)
+                    mean_mask_dst = np.mean(masked_dst)
+                    if mean_mask_dst > 253:
                         detected = False
 
 
@@ -225,7 +221,7 @@ class License_Detector():
         dim = (50, 100)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if self.visuals:
-            cv2.imshow("bw", img)
+            cv2.imshow("plate", img)
             cv2.waitKey(3)
         thresh = 64
 
@@ -243,28 +239,31 @@ class License_Detector():
         a1 = cv2.resize(a1, dim)
         n0 = cv2.resize(n0, dim)
         n1 = cv2.resize(n1, dim)
-        kernel = np.ones((5, 5), np.uint8)
+        kernel = np.ones((3, 3), np.uint8)
 
         # cv2.imshow("b", s)
         # cv2.waitKey(3)
         # cv2.imshow("w", a1)
         # cv2.waitKey(3)
 
+
+
         s = cv2.adaptiveThreshold(s, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 3)
         s = cv2.morphologyEx(s, cv2.MORPH_OPEN, kernel)
-        a0 = cv2.adaptiveThreshold(a0, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        a0 = cv2.adaptiveThreshold(a0, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, 3)
         a0 = cv2.morphologyEx(a0, cv2.MORPH_OPEN, kernel)
-        a1 = cv2.adaptiveThreshold(a1, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        a1 = cv2.adaptiveThreshold(a1, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, 3)
         a1 = cv2.morphologyEx(a1, cv2.MORPH_OPEN, kernel)
-        n0 = cv2.adaptiveThreshold(n0, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        n0 = cv2.adaptiveThreshold(n0, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, 3)
         n0 = cv2.morphologyEx(n0, cv2.MORPH_OPEN, kernel)
-        n1 = cv2.adaptiveThreshold(n1, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 15, 4)
+        n1 = cv2.adaptiveThreshold(n1, 100, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 19, 3)
         n1 = cv2.morphologyEx(n1, cv2.MORPH_OPEN, kernel)
         # s = cv2.Canny(s, 0, 255)
         # a0 = cv2.Canny(a0, 0, 255)
         # a1 = cv2.Canny(a1, 0, 255)
         # n0 = cv2.Canny(n0, 0, 255)
         # # n1 = cv2.Canny(n1, 0, 255)
+
 
         if self.visuals:
             s_copy = cv2.resize(s, (200,400))
@@ -282,6 +281,8 @@ class License_Detector():
             cv2.waitKey(3)
             cv2.imshow("n1", n1_copy)
             cv2.waitKey(3)
+
+
 
 
         return s, a0, a1, n0, n1
@@ -353,8 +354,22 @@ class License_Detector():
 
         return predicted
 
+    #in case of tie, most recently added element is returned
     def most_common_plate(self, number):
-        return Counter(self.history[number]).most_common(1)[0]
+        counter = 0
+        list = self.history[number]
+
+        str = list[0]
+        print(list)
+        print(str + "first guess")
+
+        for i in list:
+            curr_frequency = list.count(i)
+            if curr_frequency >= counter:
+                counter = curr_frequency
+                str = i
+        print(str + "most common")
+        return str
 
 
 
@@ -369,7 +384,7 @@ class License_Detector():
             try:
                 self.history[unparsed_string[0]].append(unparsed_string)
                 self.process_counter += 1
-                temp_string = self.most_common_plate(unparsed_string[0])[0]
+                temp_string = self.most_common_plate(unparsed_string[0])
                 if self.process_counter % 30 == 0:
                     self.process_counter = 0
                     for j in range(0,len(self.history)):
@@ -378,14 +393,20 @@ class License_Detector():
                         history_j = self.history[str(j+1)]
                         if len(history_j) > 0:
                             print(self.history[str(j+1)][1:])
-                            print("The most common plate in this position is: " + self.most_common_plate(str(j+1))[0][1:])
+                            print("The most common plate in this position is: " + self.most_common_plate(str(j+1))[1:])
                         else:
                             print("Empty")
                         print("--------------------")
                 #print(temp_string)
+
                 self.plate_pub.publish(str(self.TeamID + "," + self.password + ","+temp_string[0]+"," + temp_string[1:]))
                 print("Published: " + str(self.TeamID + "," + self.password + "," + temp_string[0] + "," + temp_string[1:]))
                 print("      ")
+
+                # end if pos 7/8 have been detected.
+                if len(self.history["7"]) and len(self.history["8"]) > 5:
+                    self.plate_pub.publish(str(self.TeamID + "," + self.password + "," + "-1" + "," + temp_string[1:]))
+
                 #self.plate_pub.publish(str(self.TeamID + "," + self.password + ",-1,0000"))
             except KeyError:
                 pass
