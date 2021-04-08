@@ -80,6 +80,9 @@ Reads camera data and robot commands and saves along with linear and angular mov
 class RobotController():
 
     def __init__(self):
+        rospy.init_node('controller')
+
+
         self.bridge = CvBridge()
         self.drive_model_outer = keras.models.load_model(MODEL_PATH_OUTER)
         self.drive_model_inner = keras.models.load_model(MODEL_PATH_INNER)
@@ -250,7 +253,6 @@ class RobotController():
 
 
 if __name__ == '__main__':
-    rospy.init_node('robot_controller')
     dc = RobotController()
     try:
         rospy.spin()

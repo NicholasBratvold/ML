@@ -13,7 +13,7 @@ import os
 import sys
 import re
 import tensorflow
-import keyboard
+# import keyboard
 
 from collections import Counter
 from matplotlib import pyplot as plt
