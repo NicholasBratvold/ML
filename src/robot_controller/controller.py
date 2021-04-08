@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Image
+from std_msgs.msg import String
 import cv2
 import numpy as np
 from cv_bridge import CvBridge
@@ -19,18 +20,22 @@ sess = tf.Session()
 graph = tf.get_default_graph()
 set_session(sess)
 
+# these need to be the same as in license_detector_competition.py
+TEAM_ID = 'ISTHIS'
+PASSWORD = 'working'
+
 MODEL_PATH_OUTER = '../drive_data_collect/drive_model_improved_2'
 MODEL_PATH_INNER = '../drive_data_collect/drive_model_inner'
 
 # constants
-CROSSWALK_ROW = 550
+CROSSWALK_ROW = 450
 CROSSWALK_MIN_COL = 100
 CROSSWALK_MAX_COL = 1100
 
 PED_MIN_ROW = 300
-PED_MAX_ROW = 500
-PED_MIN_COL = 370
-PED_MAX_COL = 800
+PED_MAX_ROW = 600
+PED_MIN_COL = 350
+PED_MAX_COL = 820
 
 CAR_MIN_ROW = 300
 CAR_MAX_ROW = 600
@@ -60,7 +65,7 @@ def check_grey(img, x1, y1, x2, y2):
     return np.sum(grey_on_line == 0) < 50
 
 def check_crosswalk(img):
-    return np.sum(img[CROSSWALK_ROW:,CROSSWALK_MIN_COL:CROSSWALK_MAX_COL,0] - np.mean(img[CROSSWALK_ROW:,CROSSWALK_MIN_COL:CROSSWALK_MAX_COL,:], axis=2) > 150) > 10000
+    return np.sum(img[CROSSWALK_ROW:,CROSSWALK_MIN_COL:CROSSWALK_MAX_COL,0] - np.mean(img[CROSSWALK_ROW:,CROSSWALK_MIN_COL:CROSSWALK_MAX_COL,:], axis=2) > 150) > 5000
 
 def check_pedestrian(img):
     rel_blue = img[PED_MIN_ROW:PED_MAX_ROW,PED_MIN_COL:PED_MAX_COL,2] - np.mean(img[ PED_MIN_ROW:PED_MAX_ROW, PED_MIN_COL:PED_MAX_COL], axis=2)
@@ -73,6 +78,16 @@ def check_car(img, x1, y1, x2, y2, threshold=CAR_THRESHOLD):
 
     dark = (img_diff == 0) * (img_mean < 30)
     return np.sum(dark) > threshold
+
+def check_plate(img):
+    img = img[300:, 100:600]
+
+    img_diff = np.amax(img, axis=2) - np.amin(img, axis=2)
+    img_mean = np.mean(img, axis=2)
+
+    dark = (img_diff == 0) * (img_mean < 30)
+
+    return np.sum(dark) > 100
 
 
 '''
@@ -98,8 +113,12 @@ class RobotController():
         self.last_linear = 0.0
         self.num_crosswalks = 0
 
+        plate_pub = rospy.Publisher('/license_plate', String, queue_size=10)
         rospy.sleep(1)
-        self._pub_move(0.4, 1.5)
+        # let's get this ball rolling
+        plate_pub.publish(str(TEAM_ID + "," + PASSWORD + ",0,0000"))
+
+        self._pub_move(0.5, 1.5)
         rospy.sleep(1)
         
         self.image_sub = rospy.Subscriber('/R1/pi_camera/image_raw', Image, self.callback)
@@ -127,10 +146,6 @@ class RobotController():
                 # wait a lil
                 rospy.sleep(0.25)
             else:
-                # TODO: license plate reading
-
-                # TODO: check if outer license plates have been read
-                # temp
                 if self.num_crosswalks >= 2:
                     self.state = State.turn_intersection_ready
                     print('Turn in ready.')
@@ -161,7 +176,7 @@ class RobotController():
 
                 self.last_time = rospy.get_time()
             else:
-                self._pub_drive_prediction(cv_image_small, is_inner=False)
+                self._pub_drive_prediction(cv_image_small, is_inner=False, linear_limit=0.5)
 
         elif self.state == State.turn_intersection:
             # TODO: possibly change to using camera to decide when to stop
@@ -192,8 +207,6 @@ class RobotController():
                 pass
 
         elif self.state == State.inner_loop:
-            # TODO: stop timer once all plates are found
-
             cv2.rectangle(out_image, (CAR_MIN_COL, CAR_MIN_ROW), (CAR_MAX_COL, CAR_MAX_ROW), (255, 0, 255), 3)
             if check_car(cv_image, CAR_MIN_ROW, CAR_MIN_COL, CAR_MAX_ROW, CAR_MAX_COL):
                 self._pub_stop()
@@ -216,9 +229,12 @@ class RobotController():
         out_image = self.bridge.cv2_to_imgmsg(out_image, encoding="rgb8")
 
         self.view_pub.publish(out_image)
+
+        # TODO: tune this or something idk
+        # rospy.sleep(0.01)
     
-    ''' Get prediction from neural net and publish a movement for it. '''
-    def _pub_drive_prediction(self, cv_image_small, is_inner):
+    ''' Get prediction from neural net and publish a movement for it. linear_limit will cap linear speed. '''
+    def _pub_drive_prediction(self, cv_image_small, is_inner, linear_limit = 100):
             # TODO: change this back if data gets normalized again
             cv_image_norm = cv_image_small/255
             # cv_image_norm = cv_image_small
@@ -236,12 +252,14 @@ class RobotController():
                     drive_predict[0] *= 1.2
                     drive_predict[1] *= 1.5
 
-            self._pub_move(min(drive_predict[0], 100), drive_predict[1])
+            self._pub_move(min(drive_predict[0], linear_limit), drive_predict[1])
     
     ''' Publish a move command with specified linear and angular velocity. '''
     def _pub_move(self, lin, ang):
-            if lin - self.last_linear > 0.5:
-                lin = self.last_linear + 0.5
+            if lin - self.last_linear > 0.3:
+                self._pub_move(self.last_linear + 0.2, ang)
+                rospy.sleep(0.1)
+
 
             move = Twist()
             move.linear.x = lin
@@ -249,7 +267,7 @@ class RobotController():
 
             self.last_linear = lin
             self.cmd_vel_pub.publish(move)
-            print("lin:{}, ang:{}".format(move.linear.x, move.angular.z))
+            print("lin:{}, ang:{}".format(np.around(move.linear.x, 3), np.around(move.angular.z, 3)))
 
     ''' Stop robot, slowing a bit to account for momentum. '''
     def _pub_stop(self):

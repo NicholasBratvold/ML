@@ -1,4 +1,5 @@
 <launch>
+	<node pkg="rqt_image_view" type="rqt_image_view" name="image_view" output="screen" cwd="node"/>
 	<node pkg="robot_controller" type="controller.py" name="controller" output="screen" cwd="node"/>
 	<node pkg="robot_controller" type="license_detector_competition.py" name="my_detector" output="screen" cwd="node"/>
 </launch>
