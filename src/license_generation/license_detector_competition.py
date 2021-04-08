@@ -60,7 +60,7 @@ class License_Detector():
         self.path_dir =  os.path.dirname(os.path.realpath(__file__)) + "/"
 
         #this path should be "~/ros_ws/src/licensegeneration" or similiar.
-        self.path = "../../../../license_generation/"
+        self.path = "../license_generation/"
         self.history = {'1' : [], '2': [], '3': [], '4': [], '5': [], '6': [], '7': [], '8' : []}
         # initialize game
         rospy.init_node('license_publisher')
